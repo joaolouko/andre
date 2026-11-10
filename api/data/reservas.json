@@ -1,0 +1,11 @@
+[
+    {
+    "id": 1,
+    "usuarioId": 1,
+    "espacoId": 1,
+    "data": "2026-10-01",
+    "horaInicio": "10:00",
+    "horaFim": "12:00",
+    "status": "confirmada"
+}
+]

@@ -1,0 +1,25 @@
+{
+  "name": "gestao-espacos",
+  "version": "1.1.0",
+  "description": "API de Gestão de Espaços com Express e MongoDB local",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "import-json": "node scripts/import-json.js",
+    "test": "node --test",
+    "test:e2e": "node scripts/test-e2e.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.10",
+    "express": "^5.2.1",
+    "mongoose": "^8.19.1",
+    "swagger-jsdoc": "6.2.8",
+    "swagger-ui-express": "^5.0.1"
+  }
+}

@@ -1,0 +1,9 @@
+[
+    {
+    "id": 1,
+    "nome": "Sala de Reuniões",
+    "descricao": "Sala para reuniões e apresentações",
+    "capacidade": 10,
+    "empresaId": 1
+}
+]
