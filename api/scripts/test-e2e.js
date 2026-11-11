@@ -2,29 +2,35 @@
 const assert = require('node:assert/strict');
 const API = process.env.API_BASE || 'http://localhost:3001';
 
-async function request(route, { token, method = 'GET', body } = {}) {
+async function attempt(route, { token, method = 'GET', body } = {}) {
     const headers = {};
     if (token) headers.Authorization = `Bearer ${token}`;
     if (body !== undefined) headers['Content-Type'] = 'application/json';
     const res = await fetch(`${API}${route}`, { method, headers, ...(body !== undefined ? { body: JSON.stringify(body) } : {}) });
-    const data = await res.json();
-    if (!res.ok) throw new Error(`${method} ${route} -> ${res.status}: ${JSON.stringify(data)}`);
-    return data;
+    let data = null;
+    try { data = await res.json(); } catch { /* A rota pode responder sem JSON. */ }
+    return { status: res.status, data };
+}
+
+async function request(route, options = {}) {
+    const result = await attempt(route, options);
+    if (result.status < 200 || result.status >= 300) {
+        throw new Error(`${options.method || 'GET'} ${route} -> ${result.status}: ${JSON.stringify(result.data)}`);
+    }
+    return result.data;
 }
 
 async function run() {
-    console.log('E2E API canônica: requer API/Mongo ativos, banco descartável e usuário ADMIN de teste configurado.');
+    console.log('E2E API: requer API/Mongo ativos, banco descartável e usuário ADMIN de teste.');
     const spec = await request('/swagger.json');
     assert.equal(spec.openapi, '3.0.0');
     assert.ok(spec.components.securitySchemes.bearerAuth);
-    const noToken = await fetch(`${API}/empresas`);
-    assert.equal(noToken.status, 401);
+    assert.equal((await attempt('/empresas')).status, 401);
 
     const email = process.env.E2E_ADMIN_EMAIL || 'joao@email.com';
     const password = process.env.E2E_ADMIN_PASSWORD;
     if (!password) throw new Error('Defina E2E_ADMIN_PASSWORD para não assumir senha padrão.');
-    const badLogin = await fetch(`${API}/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password: 'senha-incorreta' }) });
-    assert.equal(badLogin.status, 401);
+    assert.equal((await attempt('/auth/login', { method: 'POST', body: { email, password: 'senha-incorreta' } })).status, 401);
     const login = await request('/auth/login', { method: 'POST', body: { email, password } });
     assert.ok(login.token);
     assert.equal(login.usuario.email, email);
@@ -52,26 +58,47 @@ async function run() {
     assert.equal((await request(`/espacos/${space.id}`, { token })).company_id, company.id);
 
     const availability = await request('/disponibilidades', { token, method: 'POST', body: { space_id: space.id, day_of_week: 5, start_time: '09:00', end_time: '17:00', is_external_allowed: false, valid_on: '2026-11-20' } });
-    assert.equal(availability.space_id, space.id);
     const updatedAvailability = await request(`/disponibilidades/${availability.id}`, { token, method: 'PUT', body: { space_id: space.id, day_of_week: 5, start_time: '09:30', end_time: '16:30', is_external_allowed: true, valid_on: '2026-11-20' } });
     assert.equal(updatedAvailability.start_time, '09:30');
     assert.equal((await request(`/disponibilidades/${availability.id}`, { token })).is_external_allowed, true);
 
-    const booking = await request('/reservas', { token, method: 'POST', body: { space_id: space.id, user_id: user.id, start_datetime: '2026-11-20T10:00:00.000Z', end_datetime: '2026-11-20T12:00:00.000Z', status: 'PENDING' } });
+    const bookingInput = { space_id: space.id, user_id: user.id, start_datetime: '2026-11-20T12:30:00.000Z', end_datetime: '2026-11-20T15:00:00.000Z', status: 'PENDING' };
+    const concurrentResults = await Promise.all([
+        attempt('/reservas', { token, method: 'POST', body: bookingInput }),
+        attempt('/reservas', { token, method: 'POST', body: bookingInput })
+    ]);
+    assert.deepEqual(concurrentResults.map((result) => result.status).sort(), [201, 409]);
+    const booking = concurrentResults.find((result) => result.status === 201).data;
     assert.equal(booking.status, 'PENDING');
+    assert.equal((await attempt('/reservas', { token, method: 'POST', body: bookingInput })).status, 409, 'duplicata deve ser recusada');
+
+    const overlapInput = { ...bookingInput, start_datetime: '2026-11-20T14:00:00.000Z', end_datetime: '2026-11-20T15:00:00.000Z' };
+    const overlap = await attempt('/reservas', { token, method: 'POST', body: overlapInput });
+    assert.equal(overlap.status, 409, 'sobreposição parcial no mesmo espaço deve ser recusada');
+    assert.match(overlap.data.mensagem, /sobreposto/i);
+
+    const outsideWindow = { ...bookingInput, start_datetime: '2026-11-20T19:00:00.000Z', end_datetime: '2026-11-20T19:45:00.000Z' };
+    assert.equal((await attempt('/reservas', { token, method: 'POST', body: outsideWindow })).status, 409, 'duração que ultrapassa a janela deve ser recusada');
+
+    const adjacentInput = { ...bookingInput, start_datetime: '2026-11-20T15:00:00.000Z', end_datetime: '2026-11-20T15:30:00.000Z' };
+    const adjacentBooking = await request('/reservas', { token, method: 'POST', body: adjacentInput });
+    const conflictingUpdate = await attempt(`/reservas/${booking.id}`, { token, method: 'PATCH', body: { end_datetime: '2026-11-20T15:15:00.000Z' } });
+    assert.equal(conflictingUpdate.status, 409, 'atualização que cria sobreposição deve ser recusada');
+
     const patchedBooking = await request(`/reservas/${booking.id}`, { token, method: 'PATCH', body: { status: 'REJECTED', rejection_reason: 'Conflito de agenda' } });
     assert.equal(patchedBooking.status, 'REJECTED');
     const updatedBooking = await request(`/reservas/${booking.id}`, { token, method: 'PUT', body: { space_id: space.id, user_id: user.id, start_datetime: booking.start_datetime, end_datetime: booking.end_datetime, status: 'APPROVED', rejection_reason: null } });
     assert.equal(updatedBooking.status, 'APPROVED');
     const filtered = await request('/reservas/data/2026-11-20', { token });
     assert.ok(filtered.some((item) => item.id === booking.id));
+    assert.ok(filtered.some((item) => item.id === adjacentBooking.id));
     const stats = await request('/dashboard/stats', { token });
     assert.equal(typeof stats.reservas, 'number');
 
-    for (const [path, doc] of [['reservas', booking], ['disponibilidades', availability], ['espacos', space], ['empresas', company], ['usuarios', user]]) {
+    for (const [path, doc] of [['reservas', booking], ['reservas', adjacentBooking], ['disponibilidades', availability], ['espacos', space], ['empresas', company], ['usuarios', user]]) {
         await request(`/${path}/${doc.id}`, { token, method: 'DELETE' });
     }
-    console.log('E2E concluído: auth, GET/POST/PUT/PATCH/DELETE nas entidades, filtros, relações e dashboard.');
+    console.log('E2E concluído: disponibilidade/duração, duplicata, sobreposição concorrente, PUT/PATCH, filtros e CRUD.');
 }
 
 run().catch((error) => {

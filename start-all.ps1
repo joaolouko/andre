@@ -22,9 +22,26 @@ if (-not $mongoIsRunning) {
     New-Item -ItemType Directory -Force -Path $dbPath | Out-Null
     $quotedDbPath = '"' + $dbPath + '"'
     Start-Process -FilePath $mongod.Source -ArgumentList @('--dbpath', $quotedDbPath, '--port', '27017') -WorkingDirectory $baseDir
-    Start-Sleep -Seconds 3
-} else {
-    Write-Host 'MongoDB local já está ativo na porta 27017.' -ForegroundColor Green
+}
+
+Write-Host 'Aguardando MongoDB local ficar pronto...' -ForegroundColor Yellow
+$deadline = (Get-Date).AddSeconds(30)
+do {
+    $mongoIsRunning = Test-NetConnection -ComputerName '127.0.0.1' -Port 27017 -InformationLevel Quiet
+    if ($mongoIsRunning) { break }
+    Start-Sleep -Seconds 1
+} while ((Get-Date) -lt $deadline)
+if (-not $mongoIsRunning) {
+    throw 'MongoDB não ficou pronto na porta 27017 em 30 segundos.'
+}
+
+Write-Host 'Importando dados de demonstração e criando o usuário de login se ainda não existir...' -ForegroundColor Yellow
+Push-Location (Join-Path $baseDir 'api')
+try {
+    & npm run import-json
+    if ($LASTEXITCODE -ne 0) { throw 'A importação falhou. Confira MongoDB, api\.env e os dados JSON.' }
+} finally {
+    Pop-Location
 }
 
 Write-Host 'Iniciando API e frontend em modo de desenvolvimento...' -ForegroundColor Yellow
@@ -36,4 +53,5 @@ Write-Host ''
 Write-Host 'Frontend:  http://localhost:3000' -ForegroundColor White
 Write-Host 'API REST:  http://localhost:3001' -ForegroundColor White
 Write-Host 'Swagger:   http://localhost:3001/api-docs' -ForegroundColor White
-Write-Host 'Em base nova, execute npm run import-json na pasta api.' -ForegroundColor White
+Write-Host 'Login local: joao@email.com / 123456' -ForegroundColor White
+Write-Host 'Troque a senha antes de qualquer uso real.' -ForegroundColor Yellow

@@ -73,12 +73,15 @@ npm ci
 cp .env.example .env.local
 npm run dev
 ```
-
 No PowerShell, use `Copy-Item .env.example .env.local`. O exemplo aponta para `http://localhost:3001`; ajuste `NEXT_PUBLIC_API_URL` apenas se a API estiver noutra porta. A aplicação fica disponível em <http://localhost:3000>. Para um build de produção, use `npm run build` e depois `npm start`.
+
+### Inicialização automática no Windows
+
+Também pode executar `start-all.bat` ou `start-all.ps1` na raiz do projeto. O script aguarda o MongoDB local, executa `npm run import-json` na API e só depois inicia a API e o frontend. A importação é idempotente: cria os dados de demonstração que faltarem, incluindo o usuário administrador, sem substituir os registros existentes.
 
 ## Login de demonstração
 
-Depois de executar `npm run import-json`, a base de dados de demonstração inclui:
+Depois de executar `npm run import-json` manualmente ou iniciar pelo `start-all.bat`/`start-all.ps1`, a base de dados de demonstração inclui:
 
 - **E-mail:** `joao@email.com`
 - **Senha local de demonstração:** `123456`
@@ -107,6 +110,12 @@ Todas as rotas de gestão continuam sob os caminhos anteriores e exigem token Be
 - Dashboard: `GET /dashboard/stats`.
 - CRUD de usuários, empresas, espaços, disponibilidades e reservas: `GET /`, `GET /:id`, `POST /`, `PUT /:id`, `PATCH /:id`, `DELETE /:id` nos respetivos caminhos.
 - Pesquisa por data mantida para compatibilidade: `GET /reservas/data/:data` e `GET /disponibilidades/data/:data`.
+
+### Validação automática de reservas
+
+Ao criar ou alterar uma reserva ativa (`PENDING`/`APPROVED`), a API exige uma disponibilidade aplicável ao `space_id`, à data e ao dia da semana. O intervalo completo, incluindo sua duração, precisa caber em uma única janela. Reservas no mesmo espaço não podem se sobrepor; os intervalos são semiabertos, então uma reserva pode começar exatamente quando a anterior termina. Reservas `REJECTED`/`CANCELLED` não ocupam o recurso. Conflitos ou horários fora da janela retornam HTTP `409`.
+
+O horário de negócio usa `BUSINESS_TIMEZONE` (por padrão `America/Sao_Paulo`, configurável em `api/.env`). A validação é executada no backend e serializa operações concorrentes por espaço dentro de uma instância da API.
 
 A criação de usuário recebe `password` (texto simples apenas no request protegido); o backend gera o hash. Nunca envie nem defina `password_hash` pelo frontend. Os dados de resposta e `/auth/me` não incluem credenciais.
 
@@ -159,7 +168,7 @@ npm run build
 
 ## Arquivos de configuração
 
-- `api/.env.example`: porta, URI/base MongoDB local e variável para segredo JWT.
+- `api/.env.example`: porta, URI/base MongoDB local, fuso de negócio (`BUSINESS_TIMEZONE`) e variável para segredo JWT.
 - `frontend/.env.example`: URL pública da API.
 - `mongo-data/`: arquivos de dados locais do MongoDB; não devem ser versionados ou enviados junto do código.
 

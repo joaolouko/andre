@@ -24,10 +24,26 @@ if errorlevel 1 (
   if not exist "%BASE_DIR%mongo-data" mkdir "%BASE_DIR%mongo-data"
   echo Iniciando MongoDB local...
   start "MongoDB - Gestao de Espacos" cmd /k "mongod --dbpath ""%BASE_DIR%mongo-data"" --port 27017"
-  timeout /t 3 /nobreak >nul
-) else (
-  echo MongoDB local ja esta ativo na porta 27017.
 )
+
+echo Aguardando MongoDB local ficar pronto...
+powershell -NoProfile -Command "$deadline=(Get-Date).AddSeconds(30); while ((Get-Date) -lt $deadline) { if (Test-NetConnection 127.0.0.1 -Port 27017 -InformationLevel Quiet) { exit 0 }; Start-Sleep -Seconds 1 }; exit 1" >nul 2>&1
+if errorlevel 1 (
+  echo ERRO: MongoDB nao ficou pronto na porta 27017 em 30 segundos.
+  pause
+  exit /b 1
+)
+
+echo Importando dados de demonstracao e criando o usuario de login se ainda nao existir...
+pushd "%BASE_DIR%api"
+call npm run import-json
+if errorlevel 1 (
+  popd
+  echo ERRO: A importacao falhou. Confira MongoDB, api\.env e os dados JSON.
+  pause
+  exit /b 1
+)
+popd
 
 start "Backend API - Gestao de Espacos" cmd /k "cd /d ""%BASE_DIR%api"" && npm run dev"
 timeout /t 3 /nobreak >nul
@@ -37,6 +53,7 @@ echo ============================================================
 echo   Frontend:  http://localhost:3000
 echo   API REST:  http://localhost:3001
 echo   Swagger:   http://localhost:3001/api-docs
-echo   O banco deve conter dados via npm run import-json.
+echo   Login local: joao@email.com / 123456
+echo   Troque a senha antes de qualquer uso real.
 echo ============================================================
 pause

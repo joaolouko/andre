@@ -5,96 +5,1448 @@
     "version": "1.2.0",
     "description": "API de gestão de usuários, empresas, espaços, disponibilidades e reservas; entradas legadas em português são aceitas quando aplicável."
   },
-  "servers": [{ "url": "http://localhost:3001" }],
-  "security": [{ "bearerAuth": [] }],
+  "servers": [
+    {
+      "url": "http://localhost:3001"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
   "tags": [
-    { "name": "Autenticação" }, { "name": "Dashboard" }, { "name": "Usuários" },
-    { "name": "Empresas" }, { "name": "Espaços" }, { "name": "Disponibilidades" }, { "name": "Reservas" }
+    {
+      "name": "Autenticação"
+    },
+    {
+      "name": "Dashboard"
+    },
+    {
+      "name": "Usuários"
+    },
+    {
+      "name": "Empresas"
+    },
+    {
+      "name": "Espaços"
+    },
+    {
+      "name": "Disponibilidades"
+    },
+    {
+      "name": "Reservas"
+    }
   ],
   "paths": {
-    "/auth/login": { "post": { "tags": ["Autenticação"], "summary": "Autentica e retorna JWT", "security": [], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/LoginInput" } } } }, "responses": { "200": { "description": "Login realizado; usuario não contém hash", "content": { "application/json": { "schema": { "type": "object", "properties": { "token": { "type": "string" }, "usuario": { "$ref": "#/components/schemas/User" } } } } } }, "400": { "description": "Credenciais ausentes" }, "401": { "description": "Credenciais inválidas" } } } },
-    "/auth/me": { "get": { "tags": ["Autenticação"], "summary": "Retorna o usuário do token após consultar o banco", "responses": { "200": { "description": "Usuário autenticado" }, "401": { "description": "Token ausente, inválido ou usuário removido" } } } },
-    "/auth/logout": { "post": { "tags": ["Autenticação"], "summary": "Encerra a sessão no cliente", "security": [], "responses": { "200": { "description": "Sessão encerrada" } } } },
-    "/dashboard/stats": { "get": { "tags": ["Dashboard"], "summary": "Indicadores do painel (ADMIN ou RECEPTION)", "x-required-roles": ["ADMIN", "RECEPTION"], "responses": { "200": { "description": "Contagens e últimas reservas em formato canônico" }, "401": { "description": "Não autenticado" }, "403": { "description": "Papel sem permissão" } } } },
+    "/auth/login": {
+      "post": {
+        "tags": [
+          "Autenticação"
+        ],
+        "summary": "Autentica e retorna JWT",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login realizado; usuario não contém hash",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string"
+                    },
+                    "usuario": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Credenciais ausentes"
+          },
+          "401": {
+            "description": "Credenciais inválidas"
+          }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": [
+          "Autenticação"
+        ],
+        "summary": "Retorna o usuário do token após consultar o banco",
+        "responses": {
+          "200": {
+            "description": "Usuário autenticado"
+          },
+          "401": {
+            "description": "Token ausente, inválido ou usuário removido"
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": [
+          "Autenticação"
+        ],
+        "summary": "Encerra a sessão no cliente",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Sessão encerrada"
+          }
+        }
+      }
+    },
+    "/dashboard/stats": {
+      "get": {
+        "tags": [
+          "Dashboard"
+        ],
+        "summary": "Indicadores do painel (ADMIN ou RECEPTION)",
+        "x-required-roles": [
+          "ADMIN",
+          "RECEPTION"
+        ],
+        "responses": {
+          "200": {
+            "description": "Contagens e últimas reservas em formato canônico"
+          },
+          "401": {
+            "description": "Não autenticado"
+          },
+          "403": {
+            "description": "Papel sem permissão"
+          }
+        }
+      }
+    },
     "/usuarios": {
-      "get": { "tags": ["Usuários"], "summary": "Lista usuários (ADMIN)", "x-required-roles": ["ADMIN"], "responses": { "200": { "description": "Usuários sem password_hash" } } },
-      "post": { "tags": ["Usuários"], "summary": "Cria usuário (ADMIN)", "x-required-roles": ["ADMIN"], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UserInput" } } } }, "responses": { "201": { "description": "Usuário criado sem password_hash" }, "400": { "description": "Dados inválidos" } } }
+      "get": {
+        "tags": [
+          "Usuários"
+        ],
+        "summary": "Lista usuários (ADMIN)",
+        "x-required-roles": [
+          "ADMIN"
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuários sem password_hash"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Usuários"
+        ],
+        "summary": "Cria usuário (ADMIN)",
+        "x-required-roles": [
+          "ADMIN"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuário criado sem password_hash"
+          },
+          "400": {
+            "description": "Dados inválidos"
+          }
+        }
+      }
     },
     "/usuarios/{id}": {
-      "parameters": [{ "$ref": "#/components/parameters/Id" }],
-      "get": { "tags": ["Usuários"], "summary": "Busca usuário por ID numérico", "x-required-roles": ["ADMIN"], "responses": { "200": { "description": "Usuário sem hash" }, "404": { "description": "Não encontrado" } } },
-      "put": { "tags": ["Usuários"], "summary": "Atualiza usuário (ADMIN)", "x-required-roles": ["ADMIN"], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UserPutInput" } } } }, "responses": { "200": { "description": "Usuário atualizado sem hash" }, "404": { "description": "Não encontrado" } } },
-      "patch": { "tags": ["Usuários"], "summary": "Atualização parcial (ADMIN)", "x-required-roles": ["ADMIN"], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UserPatch" } } } }, "responses": { "200": { "description": "Usuário atualizado sem hash" } } },
-      "delete": { "tags": ["Usuários"], "summary": "Remove usuário (ADMIN)", "x-required-roles": ["ADMIN"], "responses": { "200": { "description": "Removido" }, "404": { "description": "Não encontrado" } } }
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/Id"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Usuários"
+        ],
+        "summary": "Busca usuário por ID numérico",
+        "x-required-roles": [
+          "ADMIN"
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuário sem hash"
+          },
+          "404": {
+            "description": "Não encontrado"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Usuários"
+        ],
+        "summary": "Atualiza usuário (ADMIN)",
+        "x-required-roles": [
+          "ADMIN"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserPutInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Usuário atualizado sem hash"
+          },
+          "404": {
+            "description": "Não encontrado"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Usuários"
+        ],
+        "summary": "Atualização parcial (ADMIN)",
+        "x-required-roles": [
+          "ADMIN"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Usuário atualizado sem hash"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Usuários"
+        ],
+        "summary": "Remove usuário (ADMIN)",
+        "x-required-roles": [
+          "ADMIN"
+        ],
+        "responses": {
+          "200": {
+            "description": "Removido"
+          },
+          "404": {
+            "description": "Não encontrado"
+          }
+        }
+      }
     },
     "/empresas": {
-      "get": { "tags": ["Empresas"], "summary": "Lista empresas", "responses": { "200": { "description": "Empresas" } } },
-      "post": { "tags": ["Empresas"], "summary": "Cria empresa", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CompanyInput" } } } }, "responses": { "201": { "description": "Criada" }, "400": { "description": "Dados inválidos" } } }
+      "get": {
+        "tags": [
+          "Empresas"
+        ],
+        "summary": "Lista empresas",
+        "responses": {
+          "200": {
+            "description": "Empresas"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Empresas"
+        ],
+        "summary": "Cria empresa",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompanyInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Criada"
+          },
+          "400": {
+            "description": "Dados inválidos"
+          }
+        }
+      }
     },
     "/empresas/{id}": {
-      "parameters": [{ "$ref": "#/components/parameters/Id" }],
-      "get": { "tags": ["Empresas"], "summary": "Busca empresa por ID", "responses": { "200": { "description": "Empresa" }, "404": { "description": "Não encontrada" } } },
-      "put": { "tags": ["Empresas"], "summary": "Atualiza empresa", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CompanyInput" } } } }, "responses": { "200": { "description": "Atualizada" } } },
-      "patch": { "tags": ["Empresas"], "summary": "Atualização parcial", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CompanyPatch" } } } }, "responses": { "200": { "description": "Atualizada" } } },
-      "delete": { "tags": ["Empresas"], "summary": "Remove empresa", "responses": { "200": { "description": "Removida" } } }
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/Id"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Empresas"
+        ],
+        "summary": "Busca empresa por ID",
+        "responses": {
+          "200": {
+            "description": "Empresa"
+          },
+          "404": {
+            "description": "Não encontrada"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Empresas"
+        ],
+        "summary": "Atualiza empresa",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompanyInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Atualizada"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Empresas"
+        ],
+        "summary": "Atualização parcial",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompanyPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Atualizada"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Empresas"
+        ],
+        "summary": "Remove empresa",
+        "responses": {
+          "200": {
+            "description": "Removida"
+          }
+        }
+      }
     },
     "/espacos": {
-      "get": { "tags": ["Espaços"], "summary": "Lista espaços", "parameters": [{ "in": "query", "name": "company_id", "schema": { "type": "integer" } }], "responses": { "200": { "description": "Espaços" } } },
-      "post": { "tags": ["Espaços"], "summary": "Cria espaço", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SpaceInput" } } } }, "responses": { "201": { "description": "Criado" }, "404": { "description": "Empresa não encontrada" } } }
+      "get": {
+        "tags": [
+          "Espaços"
+        ],
+        "summary": "Lista espaços",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "company_id",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Espaços"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Espaços"
+        ],
+        "summary": "Cria espaço",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpaceInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Criado"
+          },
+          "404": {
+            "description": "Empresa não encontrada"
+          }
+        }
+      }
     },
     "/espacos/{id}": {
-      "parameters": [{ "$ref": "#/components/parameters/Id" }],
-      "get": { "tags": ["Espaços"], "summary": "Busca espaço por ID", "responses": { "200": { "description": "Espaço" }, "404": { "description": "Não encontrado" } } },
-      "put": { "tags": ["Espaços"], "summary": "Atualiza espaço", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SpaceInput" } } } }, "responses": { "200": { "description": "Atualizado" } } },
-      "patch": { "tags": ["Espaços"], "summary": "Atualização parcial", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SpacePatch" } } } }, "responses": { "200": { "description": "Atualizado" } } },
-      "delete": { "tags": ["Espaços"], "summary": "Remove espaço", "responses": { "200": { "description": "Removido" } } }
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/Id"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Espaços"
+        ],
+        "summary": "Busca espaço por ID",
+        "responses": {
+          "200": {
+            "description": "Espaço"
+          },
+          "404": {
+            "description": "Não encontrado"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Espaços"
+        ],
+        "summary": "Atualiza espaço",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpaceInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Atualizado"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Espaços"
+        ],
+        "summary": "Atualização parcial",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpacePatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Atualizado"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Espaços"
+        ],
+        "summary": "Remove espaço",
+        "responses": {
+          "200": {
+            "description": "Removido"
+          }
+        }
+      }
     },
     "/disponibilidades": {
-      "get": { "tags": ["Disponibilidades"], "summary": "Lista disponibilidades", "parameters": [{ "in": "query", "name": "space_id", "schema": { "type": "integer" } }, { "in": "query", "name": "day_of_week", "schema": { "type": "integer", "minimum": 0, "maximum": 6 } }], "responses": { "200": { "description": "Disponibilidades" } } },
-      "post": { "tags": ["Disponibilidades"], "summary": "Cria disponibilidade", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AvailabilityInput" } } } }, "responses": { "201": { "description": "Criada" } } }
+      "get": {
+        "tags": [
+          "Disponibilidades"
+        ],
+        "summary": "Lista disponibilidades",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "space_id",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "day_of_week",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 6
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Disponibilidades"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Disponibilidades"
+        ],
+        "summary": "Cria disponibilidade",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AvailabilityInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Criada"
+          }
+        }
+      }
     },
-    "/disponibilidades/data/{data}": { "get": { "tags": ["Disponibilidades"], "summary": "Filtra disponibilidades específicas e recorrentes pela data", "parameters": [{ "in": "path", "name": "data", "required": true, "schema": { "type": "string", "format": "date" } }], "responses": { "200": { "description": "Disponibilidades aplicáveis à data" } } } },
+    "/disponibilidades/data/{data}": {
+      "get": {
+        "tags": [
+          "Disponibilidades"
+        ],
+        "summary": "Filtra disponibilidades específicas e recorrentes pela data",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "data",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Disponibilidades aplicáveis à data"
+          }
+        }
+      }
+    },
     "/disponibilidades/{id}": {
-      "parameters": [{ "$ref": "#/components/parameters/Id" }],
-      "get": { "tags": ["Disponibilidades"], "summary": "Busca por ID", "responses": { "200": { "description": "Disponibilidade" } } },
-      "put": { "tags": ["Disponibilidades"], "summary": "Atualiza disponibilidade", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AvailabilityInput" } } } }, "responses": { "200": { "description": "Atualizada" } } },
-      "patch": { "tags": ["Disponibilidades"], "summary": "Atualização parcial", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AvailabilityPatch" } } } }, "responses": { "200": { "description": "Atualizada" } } },
-      "delete": { "tags": ["Disponibilidades"], "summary": "Remove disponibilidade", "responses": { "200": { "description": "Removida" } } }
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/Id"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Disponibilidades"
+        ],
+        "summary": "Busca por ID",
+        "responses": {
+          "200": {
+            "description": "Disponibilidade"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Disponibilidades"
+        ],
+        "summary": "Atualiza disponibilidade",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AvailabilityInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Atualizada"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Disponibilidades"
+        ],
+        "summary": "Atualização parcial",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AvailabilityPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Atualizada"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Disponibilidades"
+        ],
+        "summary": "Remove disponibilidade",
+        "responses": {
+          "200": {
+            "description": "Removida"
+          }
+        }
+      }
     },
     "/reservas": {
-      "get": { "tags": ["Reservas"], "summary": "Lista reservas e permite filtros", "parameters": [{ "in": "query", "name": "date", "schema": { "type": "string", "format": "date" } }, { "in": "query", "name": "space_id", "schema": { "type": "integer" } }, { "in": "query", "name": "user_id", "schema": { "type": "integer" } }], "responses": { "200": { "description": "Reservas canônicas" } } },
-      "post": { "tags": ["Reservas"], "summary": "Cria reserva", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/BookingInput" } } } }, "responses": { "201": { "description": "Criada" }, "400": { "description": "Datas inválidas" }, "404": { "description": "Referência não encontrada" } } }
+      "get": {
+        "tags": [
+          "Reservas"
+        ],
+        "summary": "Lista reservas e permite filtros",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "date",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "in": "query",
+            "name": "space_id",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "user_id",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reservas canônicas"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Reservas"
+        ],
+        "summary": "Cria reserva",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Criada"
+          },
+          "400": {
+            "description": "Dados ou intervalo de datas inválidos"
+          },
+          "404": {
+            "description": "Referência não encontrada"
+          },
+          "409": {
+            "description": "Conflito: fora da disponibilidade do espaço ou sobreposição com reserva ativa"
+          }
+        }
+      }
     },
-    "/reservas/data/{data}": { "get": { "tags": ["Reservas"], "summary": "Filtra reservas pela data de início", "parameters": [{ "in": "path", "name": "data", "required": true, "schema": { "type": "string", "format": "date" } }], "responses": { "200": { "description": "Reservas do dia" } } } },
+    "/reservas/data/{data}": {
+      "get": {
+        "tags": [
+          "Reservas"
+        ],
+        "summary": "Filtra reservas pela data de início",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "data",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reservas do dia"
+          }
+        }
+      }
+    },
     "/reservas/{id}": {
-      "parameters": [{ "$ref": "#/components/parameters/Id" }],
-      "get": { "tags": ["Reservas"], "summary": "Busca reserva por ID", "responses": { "200": { "description": "Reserva" } } },
-      "put": { "tags": ["Reservas"], "summary": "Atualiza reserva", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/BookingInput" } } } }, "responses": { "200": { "description": "Atualizada" } } },
-      "patch": { "tags": ["Reservas"], "summary": "Atualização parcial", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/BookingPatch" } } } }, "responses": { "200": { "description": "Atualizada" } } },
-      "delete": { "tags": ["Reservas"], "summary": "Remove reserva", "responses": { "200": { "description": "Removida" } } }
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/Id"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Reservas"
+        ],
+        "summary": "Busca reserva por ID",
+        "responses": {
+          "200": {
+            "description": "Reserva"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Reservas"
+        ],
+        "summary": "Atualiza reserva",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Atualizada"
+          },
+          "409": {
+            "description": "Conflito: fora da disponibilidade do espaço ou sobreposição com reserva ativa"
+          },
+          "400": {
+            "description": "Dados ou intervalo de datas inválidos"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Reservas"
+        ],
+        "summary": "Atualização parcial",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Atualizada"
+          },
+          "409": {
+            "description": "Conflito: fora da disponibilidade do espaço ou sobreposição com reserva ativa"
+          },
+          "400": {
+            "description": "Dados ou intervalo de datas inválidos"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Reservas"
+        ],
+        "summary": "Remove reserva",
+        "responses": {
+          "200": {
+            "description": "Removida"
+          }
+        }
+      }
     }
   },
   "components": {
-    "securitySchemes": { "bearerAuth": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" } },
-    "parameters": { "Id": { "in": "path", "name": "id", "required": true, "schema": { "type": "integer", "minimum": 1 } } },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "parameters": {
+      "Id": {
+        "in": "path",
+        "name": "id",
+        "required": true,
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
     "schemas": {
-      "User": { "type": "object", "required": ["id", "name", "email", "role", "created_at"], "properties": { "id": { "type": "integer" }, "name": { "type": "string" }, "email": { "type": "string", "format": "email" }, "role": { "type": "string", "enum": ["ADMIN", "CLIENT", "RECEPTION"] }, "cpf_cnpj": { "type": "string", "nullable": true }, "company_id": { "type": "integer", "nullable": true }, "phone": { "type": "string", "nullable": true }, "created_at": { "type": "string", "format": "date-time" } } },
-      "LoginInput": { "type": "object", "required": ["email", "password"], "properties": { "email": { "type": "string", "format": "email" }, "password": { "type": "string", "format": "password" }, "senha": { "type": "string", "format": "password", "deprecated": true } } },
-      "UserInput": { "type": "object", "required": ["name", "email", "password"], "properties": { "name": { "type": "string" }, "email": { "type": "string", "format": "email" }, "password": { "type": "string", "format": "password", "description": "Senha em texto simples no request; a API gera e armazena um hash bcrypt. Nunca informar password_hash diretamente" }, "role": { "type": "string", "enum": ["ADMIN", "CLIENT", "RECEPTION"], "default": "CLIENT" }, "cpf_cnpj": { "type": "string", "nullable": true }, "company_id": { "type": "integer", "nullable": true }, "phone": { "type": "string", "nullable": true }, "created_at": { "type": "string", "format": "date-time" } } },
-      "UserPutInput": { "type": "object", "required": ["name", "email"], "properties": { "name": { "type": "string" }, "email": { "type": "string", "format": "email" }, "password": { "type": "string", "format": "password", "description": "Opcional; se enviado será armazenado como hash bcrypt" }, "role": { "type": "string", "enum": ["ADMIN", "CLIENT", "RECEPTION"] }, "cpf_cnpj": { "type": "string", "nullable": true }, "company_id": { "type": "integer", "nullable": true }, "phone": { "type": "string", "nullable": true } } },
-      "UserPatch": { "type": "object", "description": "Todos os campos são opcionais; password altera a senha.", "properties": { "name": { "type": "string" }, "email": { "type": "string", "format": "email" }, "password": { "type": "string", "format": "password" }, "role": { "type": "string", "enum": ["ADMIN", "CLIENT", "RECEPTION"] }, "cpf_cnpj": { "type": "string", "nullable": true }, "company_id": { "type": "integer", "nullable": true }, "phone": { "type": "string", "nullable": true } } },
-      "Company": { "type": "object", "required": ["id", "corporate_name", "trade_name", "cnpj", "phone", "created_at"], "properties": { "id": { "type": "integer" }, "corporate_name": { "type": "string" }, "trade_name": { "type": "string" }, "cnpj": { "type": "string" }, "phone": { "type": "string" }, "email": { "type": "string", "nullable": true }, "created_at": { "type": "string", "format": "date-time" } } },
-      "CompanyInput": { "type": "object", "required": ["corporate_name", "cnpj", "phone"], "properties": { "corporate_name": { "type": "string" }, "trade_name": { "type": "string" }, "cnpj": { "type": "string" }, "phone": { "type": "string" }, "email": { "type": "string", "nullable": true } } },
-      "CompanyPatch": { "type": "object", "properties": { "corporate_name": { "type": "string" }, "trade_name": { "type": "string" }, "cnpj": { "type": "string" }, "phone": { "type": "string" }, "email": { "type": "string", "nullable": true } } },
-      "Space": { "type": "object", "required": ["id", "name", "type", "capacity", "description", "is_active"], "properties": { "id": { "type": "integer" }, "name": { "type": "string" }, "type": { "type": "string", "enum": ["COWORKING", "LAB", "MEETING_ROOM"] }, "capacity": { "type": "integer", "minimum": 1 }, "description": { "type": "string" }, "is_active": { "type": "boolean" }, "company_id": { "type": "integer", "nullable": true } } },
-      "SpaceInput": { "type": "object", "required": ["name", "type", "capacity"], "properties": { "name": { "type": "string" }, "type": { "type": "string", "enum": ["COWORKING", "LAB", "MEETING_ROOM"] }, "capacity": { "type": "integer", "minimum": 1 }, "description": { "type": "string" }, "is_active": { "type": "boolean" }, "company_id": { "type": "integer", "nullable": true } } },
-      "SpacePatch": { "type": "object", "properties": { "name": { "type": "string" }, "type": { "type": "string", "enum": ["COWORKING", "LAB", "MEETING_ROOM"] }, "capacity": { "type": "integer", "minimum": 1 }, "description": { "type": "string" }, "is_active": { "type": "boolean" }, "company_id": { "type": "integer", "nullable": true } } },
-      "Availability": { "type": "object", "required": ["id", "space_id", "day_of_week", "start_time", "end_time", "is_external_allowed"], "properties": { "id": { "type": "integer" }, "space_id": { "type": "integer" }, "day_of_week": { "type": "integer", "minimum": 0, "maximum": 6 }, "start_time": { "type": "string", "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$" }, "end_time": { "type": "string", "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$" }, "is_external_allowed": { "type": "boolean" }, "valid_on": { "type": "string", "format": "date", "nullable": true } } },
-      "AvailabilityInput": { "type": "object", "required": ["space_id", "day_of_week", "start_time", "end_time"], "properties": { "space_id": { "type": "integer" }, "day_of_week": { "type": "integer", "minimum": 0, "maximum": 6 }, "start_time": { "type": "string" }, "end_time": { "type": "string" }, "is_external_allowed": { "type": "boolean", "default": false }, "valid_on": { "type": "string", "format": "date", "nullable": true } } },
-      "AvailabilityPatch": { "type": "object", "properties": { "space_id": { "type": "integer" }, "day_of_week": { "type": "integer", "minimum": 0, "maximum": 6 }, "start_time": { "type": "string" }, "end_time": { "type": "string" }, "is_external_allowed": { "type": "boolean" }, "valid_on": { "type": "string", "format": "date", "nullable": true } } },
-      "Booking": { "type": "object", "required": ["id", "space_id", "user_id", "start_datetime", "end_datetime", "status", "created_at"], "properties": { "id": { "type": "integer" }, "space_id": { "type": "integer" }, "user_id": { "type": "integer" }, "start_datetime": { "type": "string", "format": "date-time" }, "end_datetime": { "type": "string", "format": "date-time" }, "status": { "type": "string", "enum": ["PENDING", "APPROVED", "REJECTED", "CANCELLED"] }, "rejection_reason": { "type": "string", "nullable": true }, "created_at": { "type": "string", "format": "date-time" } } },
-      "BookingInput": { "type": "object", "required": ["space_id", "user_id", "start_datetime", "end_datetime"], "properties": { "space_id": { "type": "integer" }, "user_id": { "type": "integer" }, "start_datetime": { "type": "string", "format": "date-time" }, "end_datetime": { "type": "string", "format": "date-time" }, "status": { "type": "string", "enum": ["PENDING", "APPROVED", "REJECTED", "CANCELLED"], "default": "PENDING" }, "rejection_reason": { "type": "string", "nullable": true } } },
-      "BookingPatch": { "type": "object", "properties": { "space_id": { "type": "integer" }, "user_id": { "type": "integer" }, "start_datetime": { "type": "string", "format": "date-time" }, "end_datetime": { "type": "string", "format": "date-time" }, "status": { "type": "string", "enum": ["PENDING", "APPROVED", "REJECTED", "CANCELLED"] }, "rejection_reason": { "type": "string", "nullable": true } } }
+      "User": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "email",
+          "role",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "ADMIN",
+              "CLIENT",
+              "RECEPTION"
+            ]
+          },
+          "cpf_cnpj": {
+            "type": "string",
+            "nullable": true
+          },
+          "company_id": {
+            "type": "integer",
+            "nullable": true
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "LoginInput": {
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "format": "password"
+          },
+          "senha": {
+            "type": "string",
+            "format": "password",
+            "deprecated": true
+          }
+        }
+      },
+      "UserInput": {
+        "type": "object",
+        "required": [
+          "name",
+          "email",
+          "password"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "description": "Senha em texto simples no request; a API gera e armazena um hash bcrypt. Nunca informar password_hash diretamente"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "ADMIN",
+              "CLIENT",
+              "RECEPTION"
+            ],
+            "default": "CLIENT"
+          },
+          "cpf_cnpj": {
+            "type": "string",
+            "nullable": true
+          },
+          "company_id": {
+            "type": "integer",
+            "nullable": true
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "UserPutInput": {
+        "type": "object",
+        "required": [
+          "name",
+          "email"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "description": "Opcional; se enviado será armazenado como hash bcrypt"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "ADMIN",
+              "CLIENT",
+              "RECEPTION"
+            ]
+          },
+          "cpf_cnpj": {
+            "type": "string",
+            "nullable": true
+          },
+          "company_id": {
+            "type": "integer",
+            "nullable": true
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "UserPatch": {
+        "type": "object",
+        "description": "Todos os campos são opcionais; password altera a senha.",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "format": "password"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "ADMIN",
+              "CLIENT",
+              "RECEPTION"
+            ]
+          },
+          "cpf_cnpj": {
+            "type": "string",
+            "nullable": true
+          },
+          "company_id": {
+            "type": "integer",
+            "nullable": true
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "Company": {
+        "type": "object",
+        "required": [
+          "id",
+          "corporate_name",
+          "trade_name",
+          "cnpj",
+          "phone",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "corporate_name": {
+            "type": "string"
+          },
+          "trade_name": {
+            "type": "string"
+          },
+          "cnpj": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CompanyInput": {
+        "type": "object",
+        "required": [
+          "corporate_name",
+          "cnpj",
+          "phone"
+        ],
+        "properties": {
+          "corporate_name": {
+            "type": "string"
+          },
+          "trade_name": {
+            "type": "string"
+          },
+          "cnpj": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "CompanyPatch": {
+        "type": "object",
+        "properties": {
+          "corporate_name": {
+            "type": "string"
+          },
+          "trade_name": {
+            "type": "string"
+          },
+          "cnpj": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "Space": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "type",
+          "capacity",
+          "description",
+          "is_active"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "COWORKING",
+              "LAB",
+              "MEETING_ROOM"
+            ]
+          },
+          "capacity": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "description": {
+            "type": "string"
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "company_id": {
+            "type": "integer",
+            "nullable": true
+          }
+        }
+      },
+      "SpaceInput": {
+        "type": "object",
+        "required": [
+          "name",
+          "type",
+          "capacity"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "COWORKING",
+              "LAB",
+              "MEETING_ROOM"
+            ]
+          },
+          "capacity": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "description": {
+            "type": "string"
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "company_id": {
+            "type": "integer",
+            "nullable": true
+          }
+        }
+      },
+      "SpacePatch": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "COWORKING",
+              "LAB",
+              "MEETING_ROOM"
+            ]
+          },
+          "capacity": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "description": {
+            "type": "string"
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "company_id": {
+            "type": "integer",
+            "nullable": true
+          }
+        }
+      },
+      "Availability": {
+        "type": "object",
+        "required": [
+          "id",
+          "space_id",
+          "day_of_week",
+          "start_time",
+          "end_time",
+          "is_external_allowed"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "space_id": {
+            "type": "integer"
+          },
+          "day_of_week": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 6
+          },
+          "start_time": {
+            "type": "string",
+            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+          },
+          "end_time": {
+            "type": "string",
+            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+          },
+          "is_external_allowed": {
+            "type": "boolean"
+          },
+          "valid_on": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          }
+        }
+      },
+      "AvailabilityInput": {
+        "type": "object",
+        "required": [
+          "space_id",
+          "day_of_week",
+          "start_time",
+          "end_time"
+        ],
+        "properties": {
+          "space_id": {
+            "type": "integer"
+          },
+          "day_of_week": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 6
+          },
+          "start_time": {
+            "type": "string"
+          },
+          "end_time": {
+            "type": "string"
+          },
+          "is_external_allowed": {
+            "type": "boolean",
+            "default": false
+          },
+          "valid_on": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          }
+        }
+      },
+      "AvailabilityPatch": {
+        "type": "object",
+        "properties": {
+          "space_id": {
+            "type": "integer"
+          },
+          "day_of_week": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 6
+          },
+          "start_time": {
+            "type": "string"
+          },
+          "end_time": {
+            "type": "string"
+          },
+          "is_external_allowed": {
+            "type": "boolean"
+          },
+          "valid_on": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          }
+        }
+      },
+      "Booking": {
+        "type": "object",
+        "required": [
+          "id",
+          "space_id",
+          "user_id",
+          "start_datetime",
+          "end_datetime",
+          "status",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "space_id": {
+            "type": "integer"
+          },
+          "user_id": {
+            "type": "integer"
+          },
+          "start_datetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "end_datetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "APPROVED",
+              "REJECTED",
+              "CANCELLED"
+            ]
+          },
+          "rejection_reason": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "BookingInput": {
+        "type": "object",
+        "required": [
+          "space_id",
+          "user_id",
+          "start_datetime",
+          "end_datetime"
+        ],
+        "properties": {
+          "space_id": {
+            "type": "integer"
+          },
+          "user_id": {
+            "type": "integer"
+          },
+          "start_datetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "end_datetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "APPROVED",
+              "REJECTED",
+              "CANCELLED"
+            ],
+            "default": "PENDING"
+          },
+          "rejection_reason": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "BookingPatch": {
+        "type": "object",
+        "properties": {
+          "space_id": {
+            "type": "integer"
+          },
+          "user_id": {
+            "type": "integer"
+          },
+          "start_datetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "end_datetime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "APPROVED",
+              "REJECTED",
+              "CANCELLED"
+            ]
+          },
+          "rejection_reason": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      }
     }
   }
 }
