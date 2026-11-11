@@ -11,7 +11,7 @@ export default function LoginPage() {
   const { user, token, login } = useAuth();
 
   const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -29,14 +29,14 @@ export default function LoginPage() {
       setErrorMessage("Por favor, informe seu email.");
       return;
     }
-    if (!senha) {
+    if (!password) {
       setErrorMessage("Por favor, informe sua senha.");
       return;
     }
 
     setIsLoading(true);
     try {
-      await login(email.trim(), senha);
+      await login(email.trim(), password);
     } catch (error: unknown) {
       const message =
         error instanceof Error ? error.message : "Falha na autenticação.";
@@ -48,7 +48,7 @@ export default function LoginPage() {
 
   const handleFillDemo = (demoEmail: string, demoPass: string) => {
     setEmail(demoEmail);
-    setSenha(demoPass);
+    setPassword(demoPass);
     setErrorMessage("");
   };
 
@@ -113,8 +113,8 @@ export default function LoginPage() {
                 />
                 <input
                   type="password"
-                  value={senha}
-                  onChange={(e) => setSenha(e.target.value)}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   disabled={isLoading}
                   required
@@ -176,4 +176,3 @@ export default function LoginPage() {
     </div>
   );
 }
-

@@ -1,30 +1,39 @@
-# Script para iniciar todo o ambiente do Gestao de Espacos
-Write-Host "============================================================" -ForegroundColor Cyan
-Write-Host "  INICIANDO SISTEMA COMPLETO - GESTAO DE ESPACOS" -ForegroundColor Cyan
-Write-Host "============================================================" -ForegroundColor Cyan
-
+$ErrorActionPreference = 'Stop'
 $baseDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$dbPath = Join-Path $baseDir 'mongo-data'
 
-# 1. MongoDB
-Write-Host "`n[1/3] Iniciando MongoDB local..." -ForegroundColor Yellow
-Start-Process -FilePath "C:\Program Files\MongoDB\Server\9.0\bin\mongod.exe" -ArgumentList "--dbpath `"$baseDir\mongo-data`" --port 27017" -WindowStyle Minimized
+Write-Host '============================================================' -ForegroundColor Cyan
+Write-Host '  INICIANDO SISTEMA - GESTAO DE ESPACOS' -ForegroundColor Cyan
+Write-Host '============================================================' -ForegroundColor Cyan
+
+$apiEnv = Join-Path $baseDir 'api\.env'
+if (-not (Test-Path $apiEnv)) {
+    Write-Error 'Configure api\.env a partir de api\.env.example e defina JWT_SECRET.'
+    exit 1
+}
+
+$mongoIsRunning = Test-NetConnection -ComputerName '127.0.0.1' -Port 27017 -InformationLevel Quiet
+if (-not $mongoIsRunning) {
+    $mongod = Get-Command mongod -ErrorAction SilentlyContinue
+    if (-not $mongod) {
+        Write-Error 'MongoDB não está ativo e mongod não foi encontrado no PATH. Inicie o serviço local ou instale o MongoDB Community Server.'
+        exit 1
+    }
+    New-Item -ItemType Directory -Force -Path $dbPath | Out-Null
+    $quotedDbPath = '"' + $dbPath + '"'
+    Start-Process -FilePath $mongod.Source -ArgumentList @('--dbpath', $quotedDbPath, '--port', '27017') -WorkingDirectory $baseDir
+    Start-Sleep -Seconds 3
+} else {
+    Write-Host 'MongoDB local já está ativo na porta 27017.' -ForegroundColor Green
+}
+
+Write-Host 'Iniciando API e frontend em modo de desenvolvimento...' -ForegroundColor Yellow
+Start-Process -FilePath 'powershell.exe' -ArgumentList @('-NoExit', '-Command', 'npm run dev') -WorkingDirectory (Join-Path $baseDir 'api')
 Start-Sleep -Seconds 2
+Start-Process -FilePath 'powershell.exe' -ArgumentList @('-NoExit', '-Command', 'npm run dev') -WorkingDirectory (Join-Path $baseDir 'frontend')
 
-# 2. Backend API
-Write-Host "[2/3] Iniciando Backend API (Porta 3001)..." -ForegroundColor Yellow
-Start-Process -FilePath "cmd.exe" -ArgumentList "/k cd /d `"$baseDir\api`" && npm start"
-Start-Sleep -Seconds 3
-
-# 3. Frontend Next.js
-Write-Host "[3/3] Iniciando Frontend (Porta 3000)..." -ForegroundColor Yellow
-Start-Process -FilePath "cmd.exe" -ArgumentList "/k cd /d `"$baseDir\frontend`" && npm start"
-Start-Sleep -Seconds 2
-
-Write-Host "`n============================================================" -ForegroundColor Green
-Write-Host "  SISTEMA INICIADO COM SUCESSO!" -ForegroundColor Green
-Write-Host "  Frontend:  http://localhost:3000" -ForegroundColor White
-Write-Host "  API REST:  http://localhost:3001" -ForegroundColor White
-Write-Host "  Swagger:   http://localhost:3001/api-docs" -ForegroundColor White
-Write-Host "  Login:     joao@email.com / Senha: 123456" -ForegroundColor White
-Write-Host "============================================================" -ForegroundColor Green
-
+Write-Host ''
+Write-Host 'Frontend:  http://localhost:3000' -ForegroundColor White
+Write-Host 'API REST:  http://localhost:3001' -ForegroundColor White
+Write-Host 'Swagger:   http://localhost:3001/api-docs' -ForegroundColor White
+Write-Host 'Em base nova, execute npm run import-json na pasta api.' -ForegroundColor White

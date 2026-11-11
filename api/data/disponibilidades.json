@@ -1,9 +1,30 @@
 [
-    {
+  {
     "id": 1,
     "espacoId": 1,
-    "data": "2026-10-01",
+    "data": "2026-11-15",
     "horaInicio": "08:00",
     "horaFim": "18:00"
-}
+  },
+  {
+    "id": 2,
+    "espacoId": 1,
+    "data": "2026-11-16",
+    "horaInicio": "08:00",
+    "horaFim": "18:00"
+  },
+  {
+    "id": 3,
+    "espacoId": 2,
+    "data": "2026-11-15",
+    "horaInicio": "09:00",
+    "horaFim": "17:00"
+  },
+  {
+    "id": 4,
+    "espacoId": 3,
+    "data": "2026-11-20",
+    "horaInicio": "08:00",
+    "horaFim": "12:00"
+  }
 ]

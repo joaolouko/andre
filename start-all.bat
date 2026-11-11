@@ -1,26 +1,42 @@
 @echo off
+setlocal
+set "BASE_DIR=%~dp0"
+
 echo ============================================================
-echo   INICIANDO SISTEMA COMPLETO - GESTAO DE ESPACOS
+echo   INICIANDO SISTEMA - GESTAO DE ESPACOS
 echo ============================================================
 
-echo [1/3] Iniciando MongoDB...
-start "MongoDB - Gestao de Espacos" "C:\Program Files\MongoDB\Server\9.0\bin\mongod.exe" --dbpath "%~dp0mongo-data" --port 27017
+if not exist "%BASE_DIR%api\.env" (
+  echo ERRO: Configure api\.env a partir de api\.env.example e defina JWT_SECRET.
+  pause
+  exit /b 1
+)
+
+powershell -NoProfile -Command "if (Test-NetConnection 127.0.0.1 -Port 27017 -InformationLevel Quiet) { exit 0 } else { exit 1 }" >nul 2>&1
+if errorlevel 1 (
+  where mongod >nul 2>&1
+  if errorlevel 1 (
+    echo ERRO: MongoDB nao esta ativo e mongod nao foi encontrado no PATH.
+    echo Instale o MongoDB Community Server ou inicie o servico local.
+    pause
+    exit /b 1
+  )
+  if not exist "%BASE_DIR%mongo-data" mkdir "%BASE_DIR%mongo-data"
+  echo Iniciando MongoDB local...
+  start "MongoDB - Gestao de Espacos" cmd /k "mongod --dbpath ""%BASE_DIR%mongo-data"" --port 27017"
+  timeout /t 3 /nobreak >nul
+) else (
+  echo MongoDB local ja esta ativo na porta 27017.
+)
+
+start "Backend API - Gestao de Espacos" cmd /k "cd /d ""%BASE_DIR%api"" && npm run dev"
 timeout /t 3 /nobreak >nul
-
-echo [2/3] Iniciando Backend API (Porta 3001)...
-start "Backend API - Gestao de Espacos" cmd /k "cd /d %~dp0api && npm start"
-timeout /t 3 /nobreak >nul
-
-echo [3/3] Iniciando Frontend Next.js (Porta 3000)...
-start "Frontend Next.js - Gestao de Espacos" cmd /k "cd /d %~dp0frontend && npm start"
-timeout /t 2 /nobreak >nul
+start "Frontend Next.js - Gestao de Espacos" cmd /k "cd /d ""%BASE_DIR%frontend"" && npm run dev"
 
 echo ============================================================
-echo   SISTEMA INICIADO COM SUCESSO!
 echo   Frontend:  http://localhost:3000
 echo   API REST:  http://localhost:3001
 echo   Swagger:   http://localhost:3001/api-docs
-echo   Login:     joao@email.com / Senha: 123456
+echo   O banco deve conter dados via npm run import-json.
 echo ============================================================
 pause
-

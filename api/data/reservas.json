@@ -1,11 +1,29 @@
 [
-    {
+  {
     "id": 1,
     "usuarioId": 1,
     "espacoId": 1,
-    "data": "2026-10-01",
+    "data": "2026-11-15",
     "horaInicio": "10:00",
     "horaFim": "12:00",
     "status": "confirmada"
-}
+  },
+  {
+    "id": 2,
+    "usuarioId": 2,
+    "espacoId": 2,
+    "data": "2026-11-15",
+    "horaInicio": "09:00",
+    "horaFim": "11:00",
+    "status": "confirmada"
+  },
+  {
+    "id": 3,
+    "usuarioId": 1,
+    "espacoId": 3,
+    "data": "2026-11-20",
+    "horaInicio": "08:00",
+    "horaFim": "10:00",
+    "status": "pendente"
+  }
 ]

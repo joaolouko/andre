@@ -1,5 +1,5 @@
 import api from "../api";
-import { Reserva } from "./reservaService";
+import type { Reserva } from "./reservaService";
 
 export interface DashboardStats {
   usuarios: number;
@@ -16,4 +16,3 @@ export const dashboardService = {
     return response.data;
   },
 };
-

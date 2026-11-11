@@ -1,14 +1,35 @@
 [
   {
     "id": 1,
-    "nome": "João da Silva",
     "email": "joao@email.com",
-    "telefone": "48999999999"
+    "password_hash": "$2b$12$BhY0O29yOX2zKbxxGJUAA.eUsTILtKolB09rjVixwV4axTHAVa0F2",
+    "name": "João da Silva",
+    "phone": "48999999999",
+    "role": "ADMIN",
+    "cpf_cnpj": null,
+    "company_id": null,
+    "created_at": "2026-11-10T23:58:21.350Z"
   },
   {
     "id": 2,
-    "nome": "João da Silva fdfdfdfd",
-    "email": "joao@email.com",
-    "telefone": "48999999999"
+    "email": "maria@email.com",
+    "password_hash": "$2b$12$lNeeoZ9p08x2AQZr8Yx7vOe3hapHGvFPjkZ8USaeL.6SsIq2B2wy2",
+    "name": "Maria Souza",
+    "phone": "48988888888",
+    "role": "CLIENT",
+    "cpf_cnpj": null,
+    "company_id": null,
+    "created_at": "2026-11-10T23:58:21.768Z"
+  },
+  {
+    "id": 3,
+    "email": "carlos@email.com",
+    "password_hash": "$2b$12$.Kp/LXNPmWifmw5Lm4r9R.HMZ29PI0/DPafDXVXw.6Hq8aeLxNqB6",
+    "name": "Carlos Oliveira",
+    "phone": "48977777777",
+    "role": "CLIENT",
+    "cpf_cnpj": null,
+    "company_id": null,
+    "created_at": "2026-11-10T23:58:22.186Z"
   }
 ]

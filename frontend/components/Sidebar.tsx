@@ -123,11 +123,11 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           <div className="flex items-center justify-between p-2 rounded-lg bg-white border border-slate-200/80 shadow-2xs">
             <div className="flex items-center gap-2.5 min-w-0">
               <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-semibold text-xs shrink-0">
-                {user?.nome ? user.nome.charAt(0).toUpperCase() : "U"}
+                {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
               </div>
               <div className="truncate">
                 <p className="text-xs font-semibold text-slate-800 truncate">
-                  {user?.nome || "Usuário"}
+                  {user?.name || "Usuário"}
                 </p>
                 <p className="text-[11px] text-slate-400 truncate">
                   {user?.email || "usuario@email.com"}
@@ -147,4 +147,3 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     </>
   );
 }
-

@@ -57,7 +57,7 @@ export default function Header({
         <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
           <div className="hidden md:flex flex-col text-right">
             <span className="text-xs font-semibold text-slate-700">
-              {user?.nome || "Admin"}
+              {user?.name || "Admin"}
             </span>
             <span className="text-[11px] text-slate-400">
               {user?.email || ""}
@@ -76,4 +76,3 @@ export default function Header({
     </header>
   );
 }
-

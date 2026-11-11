@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Header from "../../../components/Header";
 import DataTable, { Column } from "../../../components/DataTable";
 import Modal from "../../../components/Modal";
@@ -8,424 +8,39 @@ import ConfirmDialog from "../../../components/ConfirmDialog";
 import Alert from "../../../components/Alert";
 import { disponibilidadeService, Disponibilidade, DisponibilidadeFormData } from "../../../lib/services/disponibilidadeService";
 import { espacoService, Espaco } from "../../../lib/services/espacoService";
-import { Eye, Pencil, Trash2, CalendarCheck, Clock, Calendar, DoorOpen, RefreshCw } from "lucide-react";
+import { weekdayLabel, formatDate } from "../../../lib/formatters";
+import { Eye, Pencil, Trash2, Clock, DoorOpen, RefreshCw } from "lucide-react";
 
-interface DisponibilidadesPageProps {
-  onOpenSidebar?: () => void;
-}
+interface DisponibilidadesPageProps { onOpenSidebar?: () => void }
+const inputClass = "w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-800";
+const blank = (spaceId = 0): DisponibilidadeFormData => ({ space_id: spaceId, day_of_week: 1, start_time: "08:00", end_time: "18:00", is_external_allowed: false, valid_on: null });
 
 export default function DisponibilidadesPage({ onOpenSidebar }: DisponibilidadesPageProps) {
-  const [disponibilidades, setDisponibilidades] = useState<Disponibilidade[]>([]);
-  const [espacos, setEspacos] = useState<Espaco[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
-
-  // Form modal state
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingDisp, setEditingDisp] = useState<Disponibilidade | null>(null);
-  const [formData, setFormData] = useState<DisponibilidadeFormData>({
-    espacoId: 0,
-    data: new Date().toISOString().split("T")[0],
-    horaInicio: "08:00",
-    horaFim: "18:00",
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Details modal state
-  const [detailsDisp, setDetailsDisp] = useState<Disponibilidade | null>(null);
-
-  // Delete modal state
-  const [deletingId, setDeletingId] = useState<number | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const loadData = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const [dispData, espacosData] = await Promise.all([
-        disponibilidadeService.getAll(),
-        espacoService.getAll(),
-      ]);
-      setDisponibilidades(dispData);
-      setEspacos(espacosData);
-    } catch (err: unknown) {
-      setFeedback({
-        type: "error",
-        message: err instanceof Error ? err.message : "Erro ao carregar disponibilidades.",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
-
-  const getEspacoNome = (id: number) => {
-    const espaco = espacos.find((e) => e.id === id);
-    return espaco ? espaco.nome : `Espaço #${id}`;
-  };
-
-  const handleOpenCreate = () => {
-    setEditingDisp(null);
-    setFormData({
-      espacoId: espacos.length > 0 ? espacos[0].id : 0,
-      data: new Date().toISOString().split("T")[0],
-      horaInicio: "08:00",
-      horaFim: "18:00",
-    });
-    setIsFormOpen(true);
-    setFeedback(null);
-  };
-
-  const handleOpenEdit = (disp: Disponibilidade) => {
-    setEditingDisp(disp);
-    setFormData({
-      espacoId: disp.espacoId,
-      data: disp.data,
-      horaInicio: disp.horaInicio,
-      horaFim: disp.horaFim,
-    });
-    setIsFormOpen(true);
-    setFeedback(null);
-  };
-
-  const handleSubmitForm = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.data.trim() || !formData.horaInicio.trim() || !formData.horaFim.trim()) {
-      setFeedback({ type: "error", message: "Data e horários são obrigatórios." });
-      return;
-    }
-    if (!formData.espacoId || formData.espacoId <= 0) {
-      setFeedback({ type: "error", message: "Selecione o espaço associado." });
-      return;
-    }
-
-    setIsSubmitting(true);
-    setFeedback(null);
-    try {
-      if (editingDisp) {
-        await disponibilidadeService.update(editingDisp.id, {
-          espacoId: Number(formData.espacoId),
-          data: formData.data.trim(),
-          horaInicio: formData.horaInicio.trim(),
-          horaFim: formData.horaFim.trim(),
-        });
-        setFeedback({ type: "success", message: "Disponibilidade atualizada com sucesso!" });
-      } else {
-        await disponibilidadeService.create({
-          espacoId: Number(formData.espacoId),
-          data: formData.data.trim(),
-          horaInicio: formData.horaInicio.trim(),
-          horaFim: formData.horaFim.trim(),
-        });
-        setFeedback({ type: "success", message: "Disponibilidade cadastrada com sucesso!" });
-      }
-      setIsFormOpen(false);
-      await loadData();
-    } catch (err: unknown) {
-      setFeedback({
-        type: "error",
-        message: err instanceof Error ? err.message : "Erro ao salvar disponibilidade.",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleConfirmDelete = async () => {
-    if (deletingId === null) return;
-    setIsDeleting(true);
-    try {
-      await disponibilidadeService.delete(deletingId);
-      setFeedback({ type: "success", message: "Disponibilidade excluída com sucesso!" });
-      setDeletingId(null);
-      await loadData();
-    } catch (err: unknown) {
-      setFeedback({
-        type: "error",
-        message: err instanceof Error ? err.message : "Erro ao excluir disponibilidade.",
-      });
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
+  const [items, setItems] = useState<Disponibilidade[]>([]); const [spaces, setSpaces] = useState<Espaco[]>([]); const [isLoading, setIsLoading] = useState(true);
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null); const [isFormOpen, setIsFormOpen] = useState(false); const [editing, setEditing] = useState<Disponibilidade | null>(null); const [formData, setFormData] = useState<DisponibilidadeFormData>(blank()); const [isSubmitting, setIsSubmitting] = useState(false); const [details, setDetails] = useState<Disponibilidade | null>(null); const [deletingId, setDeletingId] = useState<number | null>(null); const [isDeleting, setIsDeleting] = useState(false);
+  const loadData = useCallback(async () => { setIsLoading(true); try { const [availabilities, spaceList] = await Promise.all([disponibilidadeService.getAll(), espacoService.getAll()]); setItems(availabilities); setSpaces(spaceList); } catch (err: unknown) { setFeedback({ type: "error", message: err instanceof Error ? err.message : "Erro ao carregar disponibilidades." }); } finally { setIsLoading(false); } }, []);
+  useEffect(() => { const timer = window.setTimeout(() => { void loadData(); }, 0); return () => window.clearTimeout(timer); }, [loadData]);
+  const spaceName = (id: number) => spaces.find((s) => s.id === id)?.name ?? `Espaço #${id}`;
+  const openCreate = () => { setEditing(null); setFormData(blank(spaces[0]?.id ?? 0)); setFeedback(null); setIsFormOpen(true); };
+  const openEdit = (d: Disponibilidade) => { setEditing(d); setFormData({ space_id: d.space_id, day_of_week: d.day_of_week, start_time: d.start_time, end_time: d.end_time, is_external_allowed: d.is_external_allowed, valid_on: d.valid_on ?? null }); setFeedback(null); setIsFormOpen(true); };
+  const submit = async (event: React.FormEvent) => { event.preventDefault(); if (!formData.start_time || !formData.end_time) { setFeedback({ type: "error", message: "Os horários de início e fim são obrigatórios." }); return; } if (!formData.space_id) { setFeedback({ type: "error", message: "Selecione o espaço associado." }); return; } if (formData.end_time <= formData.start_time) { setFeedback({ type: "error", message: "O horário de fim deve ser posterior ao de início." }); return; } setIsSubmitting(true); setFeedback(null); const payload = { ...formData, space_id: Number(formData.space_id), valid_on: formData.valid_on || null }; try { if (editing) { await disponibilidadeService.update(editing.id, payload); setFeedback({ type: "success", message: "Disponibilidade atualizada com sucesso!" }); } else { await disponibilidadeService.create(payload); setFeedback({ type: "success", message: "Disponibilidade cadastrada com sucesso!" }); } setIsFormOpen(false); await loadData(); } catch (err: unknown) { setFeedback({ type: "error", message: err instanceof Error ? err.message : "Erro ao salvar disponibilidade." }); } finally { setIsSubmitting(false); } };
+  const remove = async () => { if (deletingId === null) return; setIsDeleting(true); try { await disponibilidadeService.delete(deletingId); setDeletingId(null); setFeedback({ type: "success", message: "Disponibilidade excluída com sucesso!" }); await loadData(); } catch (err: unknown) { setFeedback({ type: "error", message: err instanceof Error ? err.message : "Erro ao excluir disponibilidade." }); } finally { setIsDeleting(false); } };
+  const scope = (d: Disponibilidade) => d.valid_on ? `Pontual: ${formatDate(d.valid_on)}` : "Recorrente semanal";
   const columns: Column<Disponibilidade>[] = [
-    {
-      header: "ID",
-      cell: (d) => <span className="font-mono text-xs font-bold text-slate-500">#{d.id}</span>,
-      className: "w-16",
-    },
-    {
-      header: "Espaço Físico",
-      cell: (d) => (
-        <div className="flex items-center gap-2.5">
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-purple-100 text-purple-700 font-semibold text-xs shrink-0">
-            <DoorOpen size={16} />
-          </div>
-          <span className="font-semibold text-slate-800">{getEspacoNome(d.espacoId)}</span>
-        </div>
-      ),
-    },
-    {
-      header: "Data Disponível",
-      cell: (d) => (
-        <div className="flex items-center gap-1.5 font-mono text-xs text-slate-700">
-          <Calendar size={14} className="text-slate-400" />
-          <span>{d.data}</span>
-        </div>
-      ),
-    },
-    {
-      header: "Janela de Horário",
-      cell: (d) => (
-        <div className="flex items-center gap-1.5 font-mono text-xs text-slate-700">
-          <Clock size={14} className="text-slate-400" />
-          <span>{d.horaInicio} até {d.horaFim}</span>
-        </div>
-      ),
-    },
-    {
-      header: "Ações",
-      className: "text-right w-36",
-      cell: (d) => (
-        <div className="flex items-center justify-end gap-1">
-          <button
-            onClick={() => setDetailsDisp(d)}
-            title="Visualizar detalhes"
-            className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-          >
-            <Eye size={16} />
-          </button>
-          <button
-            onClick={() => handleOpenEdit(d)}
-            title="Editar registro"
-            className="p-1.5 text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
-          >
-            <Pencil size={16} />
-          </button>
-          <button
-            onClick={() => setDeletingId(d.id)}
-            title="Excluir registro"
-            className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-          >
-            <Trash2 size={16} />
-          </button>
-        </div>
-      ),
-    },
+    { header: "ID", className: "w-16", cell: (d) => <span className="font-mono text-xs text-slate-500">#{d.id}</span> },
+    { header: "Espaço", cell: (d) => <span className="inline-flex items-center gap-2"><DoorOpen size={15} className="text-slate-400" />{spaceName(d.space_id)}</span> },
+    { header: "Dia", cell: (d) => <span className="font-medium text-slate-800">{weekdayLabel(d.day_of_week)}</span> },
+    { header: "Horário", cell: (d) => <span className="inline-flex items-center gap-1.5 font-mono text-xs"><Clock size={14} className="text-slate-400" />{d.start_time} – {d.end_time}</span> },
+    { header: "Vigência", cell: (d) => <span className="text-xs">{scope(d)}</span> },
+    { header: "Externo", cell: (d) => <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${d.is_external_allowed ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>{d.is_external_allowed ? "Permitido" : "Não permitido"}</span> },
+    { header: "Ações", className: "text-right w-36", cell: (d) => <div className="flex justify-end gap-1"><button onClick={() => setDetails(d)} title="Visualizar detalhes" className="p-1.5 text-slate-500 hover:text-blue-600 rounded-lg"><Eye size={16} /></button><button onClick={() => openEdit(d)} title="Editar registro" className="p-1.5 text-slate-500 hover:text-amber-600 rounded-lg"><Pencil size={16} /></button><button onClick={() => setDeletingId(d.id)} title="Excluir registro" className="p-1.5 text-slate-500 hover:text-red-600 rounded-lg"><Trash2 size={16} /></button></div> },
   ];
-
-  return (
-    <>
-      <Header
-        title="Gestão de Disponibilidades"
-        subtitle="Janelas de horários e datas livres para reserva nos espaços"
-        onOpenSidebar={onOpenSidebar || (() => {})}
-        actions={
-          <button
-            onClick={loadData}
-            disabled={isLoading}
-            title="Atualizar lista"
-            className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
-          >
-            <RefreshCw size={17} className={isLoading ? "animate-spin" : ""} />
-          </button>
-        }
-      />
-
-      <main className="p-6 max-w-7xl mx-auto w-full space-y-5">
-        {feedback && (
-          <Alert
-            type={feedback.type}
-            message={feedback.message}
-            onClose={() => setFeedback(null)}
-          />
-        )}
-
-        <DataTable
-          columns={columns}
-          data={disponibilidades}
-          isLoading={isLoading}
-          searchPlaceholder="Buscar por espaço ou data (AAAA-MM-DD)..."
-          searchFilter={(d, q) =>
-            d.data.toLowerCase().includes(q) ||
-            getEspacoNome(d.espacoId).toLowerCase().includes(q) ||
-            d.horaInicio.includes(q) ||
-            d.horaFim.includes(q)
-          }
-          onAdd={handleOpenCreate}
-          addButtonLabel="Nova Disponibilidade"
-          emptyMessage="Nenhuma disponibilidade cadastrada."
-        />
-
-        {/* Modal Formulário (Criar / Editar) */}
-        <Modal
-          isOpen={isFormOpen}
-          onClose={() => setIsFormOpen(false)}
-          title={editingDisp ? `Editar Disponibilidade #${editingDisp.id}` : "Cadastrar Nova Disponibilidade"}
-          subtitle="Defina o espaço e o intervalo de horários livres"
-        >
-          <form onSubmit={handleSubmitForm} className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                Espaço Físico *
-              </label>
-              <select
-                required
-                value={formData.espacoId}
-                onChange={(e) => setFormData({ ...formData, espacoId: Number(e.target.value) })}
-                className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-800"
-              >
-                {espacos.length === 0 ? (
-                  <option value={0}>Nenhum espaço cadastrado</option>
-                ) : (
-                  espacos.map((esp) => (
-                    <option key={esp.id} value={esp.id}>
-                      {esp.nome} (Capacidade: {esp.capacidade})
-                    </option>
-                  ))
-                )}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                Data *
-              </label>
-              <div className="relative">
-                <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="date"
-                  required
-                  value={formData.data}
-                  onChange={(e) => setFormData({ ...formData, data: e.target.value })}
-                  className="w-full pl-9 pr-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-800"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Horário Início *
-                </label>
-                <div className="relative">
-                  <Clock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="time"
-                    required
-                    value={formData.horaInicio}
-                    onChange={(e) => setFormData({ ...formData, horaInicio: e.target.value })}
-                    className="w-full pl-9 pr-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-800"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Horário Fim *
-                </label>
-                <div className="relative">
-                  <Clock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="time"
-                    required
-                    value={formData.horaFim}
-                    onChange={(e) => setFormData({ ...formData, horaFim: e.target.value })}
-                    className="w-full pl-9 pr-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-800"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => setIsFormOpen(false)}
-                disabled={isSubmitting}
-                className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting || espacos.length === 0}
-                className="px-5 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-xs disabled:opacity-50"
-              >
-                {isSubmitting ? "Salvando..." : editingDisp ? "Salvar Alterações" : "Cadastrar Disponibilidade"}
-              </button>
-            </div>
-          </form>
-        </Modal>
-
-        {/* Modal Detalhes */}
-        <Modal
-          isOpen={!!detailsDisp}
-          onClose={() => setDetailsDisp(null)}
-          title="Detalhes da Disponibilidade"
-          subtitle={`Informações completas do registro #${detailsDisp?.id}`}
-        >
-          {detailsDisp && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-4 p-4 rounded-xl bg-purple-50/50 border border-purple-100">
-                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-purple-600 text-white font-bold text-lg">
-                  <CalendarCheck size={24} />
-                </div>
-                <div>
-                  <h4 className="font-bold text-slate-800 text-base">{getEspacoNome(detailsDisp.espacoId)}</h4>
-                  <p className="text-xs text-slate-500">ID da Disponibilidade: #{detailsDisp.id}</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-                  <span className="text-xs text-slate-400 font-medium block mb-1">Data</span>
-                  <span className="font-semibold text-slate-700 font-mono">{detailsDisp.data}</span>
-                </div>
-                <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-                  <span className="text-xs text-slate-400 font-medium block mb-1">Janela de Horários</span>
-                  <span className="font-semibold text-slate-700 font-mono">
-                    {detailsDisp.horaInicio} até {detailsDisp.horaFim}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-4 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const d = detailsDisp;
-                    setDetailsDisp(null);
-                    handleOpenEdit(d);
-                  }}
-                  className="px-4 py-2 text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
-                >
-                  Editar Dados
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDetailsDisp(null)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
-                >
-                  Fechar
-                </button>
-              </div>
-            </div>
-          )}
-        </Modal>
-
-        {/* Modal Confirmação de Exclusão */}
-        <ConfirmDialog
-          isOpen={deletingId !== null}
-          onClose={() => setDeletingId(null)}
-          onConfirm={handleConfirmDelete}
-          isLoading={isDeleting}
-          message="Tem certeza que deseja excluir esta disponibilidade? Esta ação removerá a janela de horário cadastrada."
-        />
-      </main>
-    </>
-  );
+  return <>
+    <Header title="Gestão de Disponibilidades" subtitle="Janelas semanais e exceções de datas para reserva" onOpenSidebar={onOpenSidebar || (() => {})} actions={<button onClick={() => void loadData()} disabled={isLoading} title="Atualizar lista" className="p-2 text-slate-500 hover:bg-slate-100 rounded-lg"><RefreshCw size={17} className={isLoading ? "animate-spin" : ""} /></button>} />
+    <main className="p-6 max-w-7xl mx-auto w-full space-y-5">{feedback && <Alert type={feedback.type} message={feedback.message} onClose={() => setFeedback(null)} />}<DataTable columns={columns} data={items} isLoading={isLoading} searchPlaceholder="Buscar por espaço, dia, horário ou data..." searchFilter={(d, q) => [spaceName(d.space_id), weekdayLabel(d.day_of_week), d.start_time, d.end_time, d.valid_on ?? "", scope(d)].some((v) => v.toLowerCase().includes(q))} onAdd={openCreate} addButtonLabel="Nova Disponibilidade" emptyMessage="Nenhuma disponibilidade cadastrada." />
+      <Modal isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} title={editing ? `Editar Disponibilidade #${editing.id}` : "Cadastrar Nova Disponibilidade"} subtitle="Defina o espaço, dia e janela de horários livres" maxWidth="lg"><form onSubmit={submit} className="space-y-4"><label className="block text-xs font-semibold text-slate-700">Espaço físico *<select required value={formData.space_id} onChange={(e) => setFormData({ ...formData, space_id: Number(e.target.value) })} className={`${inputClass} mt-1.5`}><option value={0}>Selecione um espaço</option>{spaces.map((s) => <option key={s.id} value={s.id}>{s.name} (capacidade: {s.capacity})</option>)}</select></label><div className="grid grid-cols-1 sm:grid-cols-2 gap-4"><label className="block text-xs font-semibold text-slate-700">Dia da semana *<select value={formData.day_of_week} onChange={(e) => setFormData({ ...formData, day_of_week: Number(e.target.value) })} className={`${inputClass} mt-1.5`}>{[0, 1, 2, 3, 4, 5, 6].map((day) => <option key={day} value={day}>{weekdayLabel(day)}</option>)}</select></label><label className="block text-xs font-semibold text-slate-700">Data específica (opcional)<input type="date" value={formData.valid_on ?? ""} onChange={(e) => setFormData({ ...formData, valid_on: e.target.value || null })} className={`${inputClass} mt-1.5`} /><span className="block mt-1 text-[11px] text-slate-400">Vazio = recorrência semanal; preenchido = ocorrência pontual.</span></label></div><div className="grid grid-cols-1 sm:grid-cols-2 gap-4"><label className="block text-xs font-semibold text-slate-700">Horário de início *<input type="time" required value={formData.start_time} onChange={(e) => setFormData({ ...formData, start_time: e.target.value })} className={`${inputClass} mt-1.5`} /></label><label className="block text-xs font-semibold text-slate-700">Horário de fim *<input type="time" required value={formData.end_time} onChange={(e) => setFormData({ ...formData, end_time: e.target.value })} className={`${inputClass} mt-1.5`} /></label></div><label className="inline-flex items-center gap-2 text-sm font-medium text-slate-700"><input type="checkbox" checked={formData.is_external_allowed} onChange={(e) => setFormData({ ...formData, is_external_allowed: e.target.checked })} className="rounded border-slate-300 text-blue-600 focus:ring-blue-500" />Permitir reservas de usuários externos</label><div className="flex justify-end gap-3 pt-4 border-t"><button type="button" onClick={() => setIsFormOpen(false)} disabled={isSubmitting} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Cancelar</button><button type="submit" disabled={isSubmitting || spaces.length === 0} className="px-5 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg disabled:opacity-50">{isSubmitting ? "Salvando..." : editing ? "Salvar Alterações" : "Cadastrar Disponibilidade"}</button></div></form></Modal>
+      <Modal isOpen={!!details} onClose={() => setDetails(null)} title="Detalhes da Disponibilidade" subtitle={`Informações do registro #${details?.id}`}>{details && <div className="space-y-4"><div className="p-4 rounded-xl bg-purple-50 border border-purple-100"><h4 className="font-bold text-slate-800">{spaceName(details.space_id)}</h4><p className="text-xs text-slate-500">{weekdayLabel(details.day_of_week)} · {scope(details)}</p></div><div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">{[["Horário", `${details.start_time} até ${details.end_time}`], ["Reservas externas", details.is_external_allowed ? "Permitidas" : "Não permitidas"], ["Dia da semana", weekdayLabel(details.day_of_week)], ["Vigência", scope(details)]].map(([label, value]) => <div key={label} className="p-3 bg-slate-50 rounded-lg"><span className="text-xs text-slate-400 block mb-1">{label}</span><b>{value}</b></div>)}</div><div className="flex justify-end gap-2 pt-4 border-t"><button onClick={() => { const d = details; setDetails(null); openEdit(d); }} className="px-4 py-2 text-xs text-blue-600 bg-blue-50 rounded-lg">Editar Dados</button><button onClick={() => setDetails(null)} className="px-4 py-2 text-xs text-slate-600 bg-slate-100 rounded-lg">Fechar</button></div></div>}</Modal>
+      <ConfirmDialog isOpen={deletingId !== null} onClose={() => setDeletingId(null)} onConfirm={() => void remove()} isLoading={isDeleting} message="Tem certeza que deseja excluir esta disponibilidade?" />
+    </main>
+  </>;
 }
-

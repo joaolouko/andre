@@ -4,171 +4,47 @@ const Empresa = require('../models/Empresa');
 const nextId = require('../utils/nextId');
 const asyncHandler = require('../utils/asyncHandler');
 const { parseId, parsePositiveInteger } = require('../utils/ids');
-
+const { value } = require('../utils/canonicalize');
 const router = express.Router();
-
-/** @swagger
- * /espacos:
- *   get:
- *     summary: Lista todos os espaços
- *     tags: [Espaços]
- *     responses:
- *       200:
- *         description: Lista de espaços
- */
-router.get('/', asyncHandler(async (_req, res) => {
-    res.json(await Espaco.find());
+async function checkCompany(raw, res) {
+    if (raw === null || raw === undefined) return null;
+    const id = parsePositiveInteger(raw); if (id === null) { res.status(400).json({ mensagem: 'company_id inválido' }); return false; }
+    if (!await Empresa.findOne({ id })) { res.status(404).json({ mensagem: 'Empresa não encontrada' }); return false; }
+    return id;
+}
+router.get('/', asyncHandler(async (req, res) => {
+    const query = {};
+    if (req.query.company_id !== undefined || req.query.empresaId !== undefined) {
+        const companyId = parsePositiveInteger(req.query.company_id ?? req.query.empresaId);
+        if (companyId === null) return res.status(400).json({ mensagem: 'company_id inválido' });
+        query.company_id = companyId;
+    }
+    if (req.query.type !== undefined) query.type = req.query.type;
+    if (req.query.is_active !== undefined) query.is_active = req.query.is_active === 'true';
+    return res.json(await Espaco.find(query));
 }));
-
-/** @swagger
- * /espacos/{id}:
- *   get:
- *     summary: Busca um espaço pelo ID
- *     tags: [Espaços]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema: { type: integer }
- *     responses:
- *       200:
- *         description: Espaço encontrado
- *       404:
- *         description: Espaço não encontrado
- */
 router.get('/:id', asyncHandler(async (req, res) => {
-    const id = parseId(req.params.id);
-    if (id === null) return res.status(400).json({ mensagem: 'ID inválido' });
-
-    const espaco = await Espaco.findOne({ id });
-    if (!espaco) return res.status(404).json({ mensagem: 'Espaço não encontrado' });
-    res.json(espaco);
+    const id = parseId(req.params.id); if (id === null) return res.status(400).json({ mensagem: 'ID inválido' });
+    const doc = await Espaco.findOne({ id }); if (!doc) return res.status(404).json({ mensagem: 'Espaço não encontrado' });
+    return res.json(doc);
 }));
-
-/** @swagger
- * /espacos:
- *   post:
- *     summary: Cria um novo espaço
- *     tags: [Espaços]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [nome, descricao, capacidade, empresaId]
- *             properties:
- *               nome: { type: string, example: "Sala de Reuniões" }
- *               descricao: { type: string, example: "Sala para reuniões" }
- *               capacidade: { type: integer, example: 10 }
- *               empresaId: { type: integer, example: 1 }
- *     responses:
- *       201:
- *         description: Espaço criado
- */
 router.post('/', asyncHandler(async (req, res) => {
-    const empresaId = parsePositiveInteger(req.body.empresaId);
-    if (empresaId === null) return res.status(400).json({ mensagem: 'empresaId inválido' });
-
-    if (!await Empresa.findOne({ id: empresaId })) {
-        return res.status(404).json({ mensagem: 'Empresa não encontrada' });
-    }
-
-    const espaco = await Espaco.create({
-        id: await nextId('espacos'),
-        nome: req.body.nome,
-        descricao: req.body.descricao,
-        capacidade: req.body.capacidade,
-        empresaId
-    });
-    res.status(201).json(espaco);
+    const companyId = await checkCompany(value(req.body, 'company_id', 'empresaId') ?? null, res); if (companyId === false) return;
+    const doc = await Espaco.create({ id: await nextId('espacos'), name: value(req.body, 'name', 'nome'), type: req.body.type || 'MEETING_ROOM', capacity: value(req.body, 'capacity', 'capacidade'), description: value(req.body, 'description', 'descricao') || '', is_active: value(req.body, 'is_active', 'isActive') ?? true, company_id: companyId });
+    return res.status(201).json(doc);
 }));
-
-/** @swagger
- * /espacos/{id}:
- *   put:
- *     summary: Atualiza um espaço
- *     tags: [Espaços]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema: { type: integer }
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [nome, descricao, capacidade, empresaId]
- *             properties:
- *               nome: { type: string, example: "Sala de Reuniões" }
- *               descricao: { type: string, example: "Sala para reuniões" }
- *               capacidade: { type: integer, example: 10 }
- *               empresaId: { type: integer, example: 1 }
- *     responses:
- *       200:
- *         description: Espaço atualizado
- *       404:
- *         description: Espaço ou empresa não encontrada
- */
-const updateEspacoHandler = asyncHandler(async (req, res) => {
-    const id = parseId(req.params.id);
-    if (id === null) return res.status(400).json({ mensagem: 'ID inválido' });
-
-    const atual = await Espaco.findOne({ id });
-    if (!atual) return res.status(404).json({ mensagem: 'Espaço não encontrado' });
-
-    let empresaId = atual.empresaId;
-    if (req.body.empresaId !== undefined) {
-        empresaId = parsePositiveInteger(req.body.empresaId);
-        if (empresaId === null) return res.status(400).json({ mensagem: 'empresaId inválido' });
-        if (!await Empresa.findOne({ id: empresaId })) {
-            return res.status(404).json({ mensagem: 'Empresa não encontrada' });
-        }
-    }
-
-    const espaco = await Espaco.findByIdAndUpdate(
-        atual._id,
-        {
-            nome: req.body.nome !== undefined ? req.body.nome : atual.nome,
-            descricao: req.body.descricao !== undefined ? req.body.descricao : atual.descricao,
-            capacidade: req.body.capacidade !== undefined ? req.body.capacidade : atual.capacidade,
-            empresaId
-        },
-        { new: true, runValidators: true }
-    );
-    res.json(espaco);
+const updateHandler = asyncHandler(async (req, res) => {
+    const id = parseId(req.params.id); if (id === null) return res.status(400).json({ mensagem: 'ID inválido' });
+    const current = await Espaco.findOne({ id }); if (!current) return res.status(404).json({ mensagem: 'Espaço não encontrado' });
+    const update = {};
+    for (const [target, keys] of Object.entries({ name: ['name', 'nome'], type: ['type'], capacity: ['capacity', 'capacidade'], description: ['description', 'descricao'], is_active: ['is_active', 'isActive'] })) if (keys.some((k) => req.body[k] !== undefined)) update[target] = value(req.body, ...keys);
+    if (['company_id', 'empresaId'].some((k) => req.body[k] !== undefined)) { const companyId = await checkCompany(value(req.body, 'company_id', 'empresaId'), res); if (companyId === false) return; update.company_id = companyId; }
+    const doc = await Espaco.findByIdAndUpdate(current._id, update, { new: true, runValidators: true }); return res.json(doc);
 });
-
-router.put('/:id', updateEspacoHandler);
-router.patch('/:id', updateEspacoHandler);
-
-/** @swagger
- * /espacos/{id}:
- *   delete:
- *     summary: Remove um espaço
- *     tags: [Espaços]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema: { type: integer }
- *     responses:
- *       200:
- *         description: Espaço removido
- *       404:
- *         description: Espaço não encontrado
- */
+router.put('/:id', updateHandler); router.patch('/:id', updateHandler);
 router.delete('/:id', asyncHandler(async (req, res) => {
-    const id = parseId(req.params.id);
-    if (id === null) return res.status(400).json({ mensagem: 'ID inválido' });
-
-    const espaco = await Espaco.findOne({ id });
-    if (!espaco) return res.status(404).json({ mensagem: 'Espaço não encontrado' });
-
-    await Espaco.findByIdAndDelete(espaco._id);
-    res.json({ mensagem: 'Espaço removido com sucesso' });
+    const id = parseId(req.params.id); if (id === null) return res.status(400).json({ mensagem: 'ID inválido' });
+    const doc = await Espaco.findOne({ id }); if (!doc) return res.status(404).json({ mensagem: 'Espaço não encontrado' });
+    await Espaco.findByIdAndDelete(doc._id); return res.json({ mensagem: 'Espaço removido com sucesso' });
 }));
-
 module.exports = router;

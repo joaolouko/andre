@@ -1,9 +1,23 @@
 [
-    {
+  {
     "id": 1,
     "nome": "Sala de Reuniões",
     "descricao": "Sala para reuniões e apresentações",
     "capacidade": 10,
     "empresaId": 1
-}
+  },
+  {
+    "id": 2,
+    "nome": "Auditório Principal",
+    "descricao": "Auditório para eventos e conferências",
+    "capacidade": 100,
+    "empresaId": 1
+  },
+  {
+    "id": 3,
+    "nome": "Sala de Treinamento",
+    "descricao": "Espaço equipado para treinamentos corporativos",
+    "capacidade": 30,
+    "empresaId": 2
+  }
 ]

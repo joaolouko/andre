@@ -5,45 +5,11 @@ const Espaco = require('../models/Espaco');
 const Disponibilidade = require('../models/Disponibilidade');
 const Reserva = require('../models/Reserva');
 const asyncHandler = require('../utils/asyncHandler');
-
 const router = express.Router();
-
-/**
- * @swagger
- * /dashboard/stats:
- *   get:
- *     summary: Retorna estatísticas gerais e indicadores do sistema
- *     tags: [Dashboard]
- *     responses:
- *       200:
- *         description: Indicadores do painel administrativo
- */
 router.get('/stats', asyncHandler(async (_req, res) => {
-    const [
-        totalUsuarios,
-        totalEmpresas,
-        totalEspacos,
-        totalDisponibilidades,
-        totalReservas,
-        ultimasReservas
-    ] = await Promise.all([
-        Usuario.countDocuments(),
-        Empresa.countDocuments(),
-        Espaco.countDocuments(),
-        Disponibilidade.countDocuments(),
-        Reserva.countDocuments(),
-        Reserva.find().sort({ id: -1 }).limit(5)
+    const [usuarios, empresas, espacos, disponibilidades, reservas, ultimasReservas] = await Promise.all([
+        Usuario.countDocuments(), Empresa.countDocuments(), Espaco.countDocuments(), Disponibilidade.countDocuments(), Reserva.countDocuments(), Reserva.find().sort({ id: -1 }).limit(5)
     ]);
-
-    res.json({
-        usuarios: totalUsuarios,
-        empresas: totalEmpresas,
-        espacos: totalEspacos,
-        disponibilidades: totalDisponibilidades,
-        reservas: totalReservas,
-        ultimasReservas
-    });
+    return res.json({ usuarios, empresas, espacos, disponibilidades, reservas, ultimasReservas });
 }));
-
 module.exports = router;
-
