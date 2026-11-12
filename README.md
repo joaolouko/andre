@@ -111,6 +111,10 @@ Todas as rotas de gestão continuam sob os caminhos anteriores e exigem token Be
 - CRUD de usuários, empresas, espaços, disponibilidades e reservas: `GET /`, `GET /:id`, `POST /`, `PUT /:id`, `PATCH /:id`, `DELETE /:id` nos respetivos caminhos.
 - Pesquisa por data mantida para compatibilidade: `GET /reservas/data/:data` e `GET /disponibilidades/data/:data`.
 
+### Prevenção de cadastros duplicados
+
+A API e os índices únicos do MongoDB impedem usuários com e-mail ou CPF/CNPJ repetido, empresas com CNPJ repetido, espaços com o mesmo nome dentro da mesma empresa e disponibilidades com o mesmo espaço/dia (ou data específica) e horário. Comparações de e-mail e nomes ignoram caixa e espaços; CPF/CNPJ são comparados pelos dígitos. Criar ou atualizar com uma chave já usada por outro registro retorna HTTP `409 Conflict`. Os índices também protegem contra requisições simultâneas; na primeira inicialização, campos internos de comparação são preparados sem apagar registros. Se a base já tiver duplicatas, corrija-as antes de iniciar a API.
+
 ### Validação automática de reservas
 
 Ao criar ou alterar uma reserva ativa (`PENDING`/`APPROVED`), a API exige uma disponibilidade aplicável ao `space_id`, à data e ao dia da semana. O intervalo completo, incluindo sua duração, precisa caber em uma única janela. Reservas no mesmo espaço não podem se sobrepor; os intervalos são semiabertos, então uma reserva pode começar exatamente quando a anterior termina. Reservas `REJECTED`/`CANCELLED` não ocupam o recurso. Conflitos ou horários fora da janela retornam HTTP `409`.

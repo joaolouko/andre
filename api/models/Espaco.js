@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { spaceNameKey } = require('../utils/uniqueKeys');
 
 const espacoSchema = new mongoose.Schema({
     id: { type: Number, required: true, unique: true, min: 1 },
@@ -7,11 +8,17 @@ const espacoSchema = new mongoose.Schema({
     capacity: { type: Number, required: true, min: 1 },
     description: { type: String, default: '', trim: true },
     is_active: { type: Boolean, default: true, required: true },
-    company_id: { type: Number, default: null, min: 1 }
+    company_id: { type: Number, default: null, min: 1 },
+    _name_key: { type: String, default: null, select: false }
 }, {
     versionKey: false,
     id: false,
-    toJSON: { transform(_doc, ret) { delete ret._id; return ret; } }
+    toJSON: { transform(_doc, ret) { delete ret._id; delete ret._name_key; return ret; } }
 });
+
+espacoSchema.pre('validate', function setUniqueKeys() {
+    this._name_key = spaceNameKey(this.name);
+});
+espacoSchema.index({ company_id: 1, _name_key: 1 }, { unique: true, name: 'uniq_espaco_empresa_nome', partialFilterExpression: { _name_key: { $type: 'string' } } });
 
 module.exports = mongoose.model('Espaco', espacoSchema);

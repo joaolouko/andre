@@ -1,4 +1,5 @@
 const bcrypt = require('bcryptjs');
+const { emailKey, identityKey, cnpjKey, spaceNameKey } = require('./uniqueKeys');
 
 const value = (obj, ...keys) => {
     for (const key of keys) if (obj[key] !== undefined) return obj[key];
@@ -30,6 +31,8 @@ async function user(input, { requirePassword = false } = {}) {
         email: String(value(input, 'email') || '').trim().toLowerCase(),
         role: value(input, 'role') || (String(input.email || '').toLowerCase() === 'joao@email.com' ? 'ADMIN' : 'CLIENT'),
         cpf_cnpj: value(input, 'cpf_cnpj', 'cpfCnpj') ?? null,
+        _email_key: emailKey(value(input, 'email')),
+        _cpf_cnpj_key: identityKey(value(input, 'cpf_cnpj', 'cpfCnpj')),
         company_id: value(input, 'company_id', 'empresaId') ?? null,
         phone: value(input, 'phone', 'telefone') ?? null,
         created_at: value(input, 'created_at', 'createdAt') ? asDate(value(input, 'created_at', 'createdAt')) : new Date()
@@ -45,6 +48,7 @@ function company(input) {
         corporate_name: corporateName,
         trade_name: value(input, 'trade_name', 'tradeName') || corporateName,
         cnpj: value(input, 'cnpj'),
+        _cnpj_key: cnpjKey(value(input, 'cnpj')),
         phone: value(input, 'phone', 'telefone'),
         email: value(input, 'email') ? String(value(input, 'email')).trim().toLowerCase() : null,
         created_at: value(input, 'created_at', 'createdAt') ? asDate(value(input, 'created_at', 'createdAt')) : new Date()
@@ -54,6 +58,7 @@ function space(input) {
     return {
         id: input.id,
         name: value(input, 'name', 'nome'),
+        _name_key: spaceNameKey(value(input, 'name', 'nome')),
         type: value(input, 'type') || 'MEETING_ROOM',
         capacity: value(input, 'capacity', 'capacidade'),
         description: value(input, 'description', 'descricao') || '',
@@ -64,7 +69,7 @@ function space(input) {
 function availability(input) {
     const validOn = value(input, 'valid_on', 'validOn', 'data') ?? null;
     const day = value(input, 'day_of_week', 'dayOfWeek');
-    const dayOfWeek = day === undefined ? (validOn ? new Date(`${validOn}T00:00:00Z`).getUTCDay() : undefined) : Number(day);
+    const dayOfWeek = validOn ? new Date(`${validOn}T00:00:00Z`).getUTCDay() : (day === undefined ? undefined : Number(day));
     return {
         id: input.id,
         space_id: value(input, 'space_id', 'spaceId', 'espacoId'),

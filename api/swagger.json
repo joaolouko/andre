@@ -176,6 +176,9 @@
           },
           "400": {
             "description": "Dados inválidos"
+          },
+          "409": {
+            "description": "Conflito: já existe um cadastro com o mesmo identificador único."
           }
         }
       }
@@ -227,6 +230,9 @@
           },
           "404": {
             "description": "Não encontrado"
+          },
+          "409": {
+            "description": "Conflito: já existe um cadastro com o mesmo identificador único."
           }
         }
       },
@@ -251,6 +257,9 @@
         "responses": {
           "200": {
             "description": "Usuário atualizado sem hash"
+          },
+          "409": {
+            "description": "Conflito: já existe um cadastro com o mesmo identificador único."
           }
         }
       },
@@ -305,6 +314,9 @@
           },
           "400": {
             "description": "Dados inválidos"
+          },
+          "409": {
+            "description": "Conflito: já existe um cadastro com o mesmo identificador único."
           }
         }
       }
@@ -347,6 +359,9 @@
         "responses": {
           "200": {
             "description": "Atualizada"
+          },
+          "409": {
+            "description": "Conflito: já existe um cadastro com o mesmo identificador único."
           }
         }
       },
@@ -368,6 +383,9 @@
         "responses": {
           "200": {
             "description": "Atualizada"
+          },
+          "409": {
+            "description": "Conflito: já existe um cadastro com o mesmo identificador único."
           }
         }
       },
@@ -425,6 +443,9 @@
           },
           "404": {
             "description": "Empresa não encontrada"
+          },
+          "409": {
+            "description": "Conflito: já existe um cadastro com o mesmo identificador único."
           }
         }
       }
@@ -467,6 +488,9 @@
         "responses": {
           "200": {
             "description": "Atualizado"
+          },
+          "409": {
+            "description": "Conflito: já existe um cadastro com o mesmo identificador único."
           }
         }
       },
@@ -488,6 +512,9 @@
         "responses": {
           "200": {
             "description": "Atualizado"
+          },
+          "409": {
+            "description": "Conflito: já existe um cadastro com o mesmo identificador único."
           }
         }
       },
@@ -551,6 +578,9 @@
         "responses": {
           "201": {
             "description": "Criada"
+          },
+          "409": {
+            "description": "Conflito: já existe um cadastro com o mesmo identificador único."
           }
         }
       }
@@ -614,6 +644,9 @@
         "responses": {
           "200": {
             "description": "Atualizada"
+          },
+          "409": {
+            "description": "Conflito: já existe um cadastro com o mesmo identificador único."
           }
         }
       },
@@ -635,6 +668,9 @@
         "responses": {
           "200": {
             "description": "Atualizada"
+          },
+          "409": {
+            "description": "Conflito: já existe um cadastro com o mesmo identificador único."
           }
         }
       },

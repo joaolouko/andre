@@ -14,4 +14,13 @@ const disponibilidadeSchema = new mongoose.Schema({
     toJSON: { transform(_doc, ret) { delete ret._id; return ret; } }
 });
 
+disponibilidadeSchema.index(
+    { space_id: 1, day_of_week: 1, start_time: 1, end_time: 1 },
+    { unique: true, name: 'uniq_disponibilidade_recorrente', partialFilterExpression: { valid_on: null } }
+);
+disponibilidadeSchema.index(
+    { space_id: 1, valid_on: 1, start_time: 1, end_time: 1 },
+    { unique: true, name: 'uniq_disponibilidade_data', partialFilterExpression: { valid_on: { $type: 'string' } } }
+);
+
 module.exports = mongoose.model('Disponibilidade', disponibilidadeSchema);

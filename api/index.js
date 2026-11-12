@@ -37,8 +37,9 @@ async function startServer() {
         console.log(`Documentação Swagger em http://localhost:${port}/api-docs`);
     });
 }
-if (require.main === module) startServer().catch(() => {
-    console.error('Não foi possível iniciar a aplicação. Verifique se o MongoDB local está ativo e as configurações locais.');
+if (require.main === module) startServer().catch((error) => {
+    if (error.code === 'UNIQUE_CONSTRAINT_PRECHECK') console.error(error.message);
+    else console.error('Não foi possível iniciar a aplicação. Verifique se o MongoDB local está ativo e as configurações locais.');
     process.exitCode = 1;
 });
 module.exports = { app, startServer };

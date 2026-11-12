@@ -62,6 +62,14 @@ O script faz upsert por `id`: registos já existentes não são substituídos; o
 
 Os IDs numéricos e os campos relacionais (`empresaId`, `espacoId` e `usuarioId`) foram preservados para manter compatibilidade com os dados e os contratos anteriores. Novos IDs são gerados por contadores atómicos no MongoDB. Os erros de validação retornam HTTP 400, referências inexistentes HTTP 404 e erros inesperados HTTP 500.
 
+### Prevenção de cadastros duplicados
+
+A API verifica duplicidades antes de criar ou atualizar registros e o MongoDB mantém índices únicos para proteger também contra requisições concorrentes. São considerados duplicados: usuários com o mesmo e-mail (ignorando maiúsculas/minúsculas e espaços externos) ou CPF/CNPJ (comparado apenas pelos dígitos); empresas com o mesmo CNPJ (apenas dígitos); espaços com o mesmo nome na mesma empresa (ignorando caixa e espaços externos); e disponibilidades do mesmo espaço com o mesmo dia recorrente e horário, ou com a mesma data específica e horário. As disponibilidades só são consideradas iguais quando os limites de início e fim são iguais; a regra não bloqueia, por si só, intervalos parcialmente sobrepostos.
+
+Uma atualização pode manter os identificadores do próprio registro, mas não pode assumir os dados únicos de outro. Conflitos retornam HTTP `409 Conflict` com uma mensagem indicando o campo duplicado. Na inicialização, os índices são verificados e os dados existentes são preparados; se a base já contiver duplicatas, a API informa os registros envolvidos e não inicia até que sejam corrigidos.
+
+Os campos auxiliares de normalização são internos e não aparecem nas respostas da API. A primeira inicialização após esta alteração prepara as chaves dos documentos existentes e cria os índices únicos; essa preparação não apaga registros. Se já houver duplicatas, ajuste ou remova os registros repetidos no banco antes de reiniciar.
+
 ## Testes
 
 ```bash
