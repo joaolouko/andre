@@ -67,7 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(authenticatedUser);
     localStorage.setItem("gestao_espacos_token", data.token);
     localStorage.setItem("gestao_espacos_user", JSON.stringify(authenticatedUser));
-    router.push("/dashboard");
+    router.push(authenticatedUser.role === "CLIENT" ? "/portal" : "/dashboard");
   };
 
   const logout = async () => {

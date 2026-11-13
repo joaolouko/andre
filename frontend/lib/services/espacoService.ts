@@ -8,6 +8,7 @@ export interface Espaco {
   type: SpaceType;
   capacity: number;
   description: string;
+  equipment: string[];
   is_active: boolean;
   company_id: number | null;
 }
@@ -17,6 +18,7 @@ export interface EspacoFormData {
   type: SpaceType;
   capacity: number;
   description: string;
+  equipment: string[];
   is_active: boolean;
   company_id: number | null;
 }

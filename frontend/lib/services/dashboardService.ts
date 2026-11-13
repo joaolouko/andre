@@ -5,9 +5,16 @@ export interface DashboardStats {
   usuarios: number;
   empresas: number;
   espacos: number;
+  espacosAtivos: number;
   disponibilidades: number;
   reservas: number;
-  ultimasReservas: Reserva[];
+  pendingReservations: number;
+  hoursUsed: number;
+  occupancyRate: number;
+  availableHours: number;
+  peakHours: { hour: string; reservations: number }[];
+  period: { start: string; end: string; timezone: string };
+  ultimasReservas: (Reserva & { user_name: string; space_name: string })[];
 }
 
 export const dashboardService = {

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "../../lib/authContext";
 import Sidebar from "../../components/Sidebar";
 import { Loader2 } from "lucide-react";
@@ -11,15 +11,20 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { token, isLoading } = useAuth();
+  const { token, user, isLoading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !token) {
       router.push("/login");
+    } else if (!isLoading && user?.role === "CLIENT") {
+      router.replace("/portal");
+    } else if (!isLoading && user?.role === "RECEPTION" && pathname?.startsWith("/usuarios")) {
+      router.replace("/reservas");
     }
-  }, [token, isLoading, router]);
+  }, [token, user, isLoading, router, pathname]);
 
   if (isLoading) {
     return (
@@ -32,7 +37,7 @@ export default function AdminLayout({
     );
   }
 
-  if (!token) {
+  if (!token || user?.role === "CLIENT" || (user?.role === "RECEPTION" && pathname?.startsWith("/usuarios"))) {
     return null;
   }
 
@@ -47,4 +52,3 @@ export default function AdminLayout({
     </div>
   );
 }
-

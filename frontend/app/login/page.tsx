@@ -17,7 +17,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (token && user) {
-      router.push("/dashboard");
+      router.push(user.role === "CLIENT" ? "/portal" : "/dashboard");
     }
   }, [token, user, router]);
 

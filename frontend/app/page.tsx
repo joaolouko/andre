@@ -6,18 +6,18 @@
   import { Loader2 } from "lucide-react";
 
   export default function HomePage() {
-    const { token, isLoading } = useAuth();
+  const { token, user, isLoading } = useAuth();
     const router = useRouter();
 
     useEffect(() => {
       if (!isLoading) {
         if (token) {
-          router.push("/dashboard");
+          router.push(user?.role === "CLIENT" ? "/portal" : "/dashboard");
         } else {
           router.push("/login");
         }
       }
-    }, [token, isLoading, router]);
+    }, [token, user, isLoading, router]);
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50">

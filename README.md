@@ -81,12 +81,15 @@ Também pode executar `start-all.bat` ou `start-all.ps1` na raiz do projeto. O s
 
 ## Login de demonstração
 
-Depois de executar `npm run import-json` manualmente ou iniciar pelo `start-all.bat`/`start-all.ps1`, a base de dados de demonstração inclui:
+Depois de executar `npm run import-json` manualmente ou iniciar pelo `start-all.bat`/`start-all.ps1`, a base de dados de demonstração inclui contas para testar cada perfil:
 
-- **E-mail:** `joao@email.com`
-- **Senha local de demonstração:** `123456`
+| Perfil | E-mail | Senha local |
+|---|---|---|
+| ADMIN | `joao@email.com` | `123456` |
+| CLIENT | `cliente.demo@email.com` | `123456` |
+| RECEPTION | `recepcao.demo@email.com` | `123456` |
 
-Esta senha é apenas para avaliação/desenvolvimento local. O servidor guarda hashes bcrypt em `password_hash`, nunca devolve o hash pela API e assina os tokens JWT com o segredo configurado em `JWT_SECRET`. Troque a credencial antes de qualquer utilização real.
+Essas credenciais são exclusivamente para avaliação/desenvolvimento local. Os usuários são inseridos na persistência MongoDB pelo importador e as senhas são armazenadas como hashes bcrypt em `password_hash`; o hash nunca é devolvido pela API. Troque as credenciais antes de qualquer utilização real.
 
 ## Entidades e campos
 
@@ -96,9 +99,10 @@ Os nomes abaixo são os nomes canônicos armazenados no MongoDB e enviados pela 
 |---|---|
 | Usuários (`/usuarios`) | `id`, `name`, `email`, `password_hash` (somente persistência), `role` (`ADMIN`, `CLIENT`, `RECEPTION`), `cpf_cnpj`, `company_id`, `created_at`; `phone` é mantido como campo opcional de compatibilidade. |
 | Empresas (`/empresas`) | `id`, `corporate_name`, `trade_name`, `cnpj`, `phone`, `created_at`; `email` continua opcional para compatibilidade com o cadastro anterior. |
-| Espaços (`/espacos`) | `id`, `name`, `type` (`COWORKING`, `LAB`, `MEETING_ROOM`), `capacity`, `description`, `is_active`, `company_id` (referência numérica à empresa). |
+| Espaços (`/espacos`) | `id`, `name`, `type` (`COWORKING`, `LAB`, `MEETING_ROOM`), `capacity`, `description`, `equipment` (lista de equipamentos), `is_active`, `company_id` (referência numérica à empresa). |
 | Disponibilidades (`/disponibilidades`) | `id`, `space_id`, `day_of_week` (0 domingo a 6 sábado), `start_time`, `end_time`, `is_external_allowed`. `valid_on` é uma extensão opcional para conservar disponibilidades legadas de uma data específica; sem ela, a disponibilidade é semanal. |
-| Reservas (`/reservas`) | `id`, `space_id`, `user_id`, `start_datetime`, `end_datetime`, `status` (`PENDING`, `APPROVED`, `REJECTED`, `CANCELLED`), `rejection_reason`, `created_at`. |
+| Reservas (`/reservas`) | `id`, `space_id`, `user_id`, `start_datetime`, `end_datetime`, `status` (`PENDING`, `APPROVED`, `REJECTED`, `CANCELLED`), `rejection_reason`, `created_at`, `history` (trilha de alterações). |
+| Bloqueios (`/bloqueios`) | `id`, `space_id`, `kind` (`MAINTENANCE` ou `INTERNAL_EVENT`), título/descrição, início/fim e responsável. |
 
 `id` e as referências são numéricos para preservar o contrato da aplicação existente; o `_id` interno do MongoDB não faz parte da resposta pública. Datas de reservas trafegam como valores ISO 8601 com fuso horário.
 
@@ -108,8 +112,15 @@ Todas as rotas de gestão continuam sob os caminhos anteriores e exigem token Be
 
 - Autenticação: `POST /auth/login`, `GET /auth/me`, `POST /auth/logout`.
 - Dashboard: `GET /dashboard/stats`.
+- Portal CLIENT: `GET /portal/spaces`, `GET /portal/availability`, `GET/POST /portal/reservations` e cancelamento de reservas próprias.
+- Agenda: `GET /agenda?from=AAAA-MM-DD&to=AAAA-MM-DD`; visualizações mensais, semanais e diárias no frontend.
+- Manutenção e eventos internos: CRUD em `/bloqueios`, com validação de conflito no backend.
 - CRUD de usuários, empresas, espaços, disponibilidades e reservas: `GET /`, `GET /:id`, `POST /`, `PUT /:id`, `PATCH /:id`, `DELETE /:id` nos respetivos caminhos.
 - Pesquisa por data mantida para compatibilidade: `GET /reservas/data/:data` e `GET /disponibilidades/data/:data`.
+
+`ADMIN` possui gestão completa e pode aprovar/rejeitar reservas. `RECEPTION` controla a operação sem acesso à gestão de usuários nem poder de aprovação. `CLIENT` recebe um portal separado, só pode solicitar/cancelar reservas próprias e nunca define o próprio `user_id` ou estado da reserva.
+
+Toda solicitação inicia em `PENDING`; a equipe ADMIN pode aprovar ou rejeitar, com justificativa obrigatória para rejeição. Reservas e seus históricos são mantidos após cancelamento. Os bloqueios de manutenção e eventos são gravados no MongoDB e entram tanto na agenda quanto na verificação de disponibilidade.
 
 ### Prevenção de cadastros duplicados
 

@@ -44,6 +44,7 @@ router.post('/', asyncHandler(async (req, res) => {
         id: await nextId('espacos'), name, _name_key: nameKey,
         type: req.body.type || 'MEETING_ROOM', capacity: value(req.body, 'capacity', 'capacidade'),
         description: value(req.body, 'description', 'descricao') || '',
+        equipment: Array.isArray(req.body.equipment) ? req.body.equipment : [],
         is_active: value(req.body, 'is_active', 'isActive') ?? true, company_id: companyId
     });
     return res.status(201).json(doc);
@@ -53,9 +54,10 @@ const updateHandler = asyncHandler(async (req, res) => {
     const id = parseId(req.params.id); if (id === null) return res.status(400).json({ mensagem: 'ID inválido' });
     const current = await Espaco.findOne({ id }); if (!current) return res.status(404).json({ mensagem: 'Espaço não encontrado' });
     const update = {};
-    for (const [target, keys] of Object.entries({ name: ['name', 'nome'], type: ['type'], capacity: ['capacity', 'capacidade'], description: ['description', 'descricao'], is_active: ['is_active', 'isActive'] })) {
+    for (const [target, keys] of Object.entries({ name: ['name', 'nome'], type: ['type'], capacity: ['capacity', 'capacidade'], description: ['description', 'descricao'], equipment: ['equipment', 'equipamentos'], is_active: ['is_active', 'isActive'] })) {
         if (keys.some((k) => req.body[k] !== undefined)) update[target] = value(req.body, ...keys);
     }
+    if (update.equipment !== undefined && !Array.isArray(update.equipment)) return res.status(400).json({ mensagem: 'equipment deve ser uma lista de textos' });
     if (['company_id', 'empresaId'].some((k) => req.body[k] !== undefined)) {
         const companyId = await checkCompany(value(req.body, 'company_id', 'empresaId'), res); if (companyId === false) return;
         update.company_id = companyId;

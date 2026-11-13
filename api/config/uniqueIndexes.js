@@ -3,6 +3,7 @@ const Usuario = require('../models/Usuario');
 const Empresa = require('../models/Empresa');
 const Espaco = require('../models/Espaco');
 const Disponibilidade = require('../models/Disponibilidade');
+const Bloqueio = require('../models/Bloqueio');
 const { emailKey, identityKey, cnpjKey, spaceNameKey } = require('../utils/uniqueKeys');
 
 function dayForDate(value) {
@@ -99,7 +100,7 @@ async function ensureUniqueIndexes() {
         if (operations.length) await mongoose.connection.db.collection(Model.collection.collectionName).bulkWrite(operations, { ordered: true });
     }
 
-    await Promise.all([Usuario, Empresa, Espaco, Disponibilidade].map((Model) => Model.createIndexes()));
+    await Promise.all([Usuario, Empresa, Espaco, Disponibilidade, Bloqueio].map((Model) => Model.createIndexes()));
 }
 
 module.exports = { ensureUniqueIndexes };

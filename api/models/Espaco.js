@@ -7,6 +7,7 @@ const espacoSchema = new mongoose.Schema({
     type: { type: String, enum: ['COWORKING', 'LAB', 'MEETING_ROOM'], default: 'MEETING_ROOM', required: true },
     capacity: { type: Number, required: true, min: 1 },
     description: { type: String, default: '', trim: true },
+    equipment: { type: [{ type: String, trim: true }], default: [] },
     is_active: { type: Boolean, default: true, required: true },
     company_id: { type: Number, default: null, min: 1 },
     _name_key: { type: String, default: null, select: false }
@@ -18,6 +19,7 @@ const espacoSchema = new mongoose.Schema({
 
 espacoSchema.pre('validate', function setUniqueKeys() {
     this._name_key = spaceNameKey(this.name);
+    this.equipment = [...new Set((this.equipment || []).map((item) => String(item).trim()).filter(Boolean))];
 });
 espacoSchema.index({ company_id: 1, _name_key: 1 }, { unique: true, name: 'uniq_espaco_empresa_nome', partialFilterExpression: { _name_key: { $type: 'string' } } });
 

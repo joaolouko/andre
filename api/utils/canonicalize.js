@@ -62,6 +62,7 @@ function space(input) {
         type: value(input, 'type') || 'MEETING_ROOM',
         capacity: value(input, 'capacity', 'capacidade'),
         description: value(input, 'description', 'descricao') || '',
+        equipment: Array.isArray(value(input, 'equipment', 'equipamentos')) ? [...new Set(value(input, 'equipment', 'equipamentos').map((item) => String(item).trim()).filter(Boolean))] : [],
         is_active: value(input, 'is_active', 'isActive') ?? true,
         company_id: value(input, 'company_id', 'empresaId') ?? null
     };
